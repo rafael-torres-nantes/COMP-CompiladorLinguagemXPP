@@ -1,0 +1,38 @@
+// Programa de teste válido para X++
+// Demonstra classes com herança, construtores e métodos
+
+class Animal {
+    int idade;
+    string nome;
+
+    constructor(int i, string n) {
+        idade = i;
+        nome = n;
+    }
+
+    int getIdade() {
+        return idade;
+    }
+
+    string getNome() {
+        return nome;
+    }
+}
+
+class Cachorro extends Animal {
+    string raca;
+
+    constructor(int i, string n, string r) {
+        super(i, n);
+        raca = r;
+    }
+
+    string getRaca() {
+        return raca;
+    }
+
+    int latir() {
+        print "Au au!";
+        return 1;
+    }
+}

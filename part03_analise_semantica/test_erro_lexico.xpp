@@ -1,0 +1,9 @@
+// Teste com erro léxico - caractere inválido @
+
+class Teste {
+    int valor;
+
+    constructor(int v) {
+        valor = v @ 10; // @ não é um operador válido
+    }
+}

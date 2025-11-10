@@ -1,0 +1,14 @@
+// Teste com erro de sintaxe - falta fechar chaves
+
+class Pessoa {
+    int idade;
+    string nome;
+
+    constructor(int i) {
+        idade = i;
+    // Falta fechar a chave do construtor
+
+    int getIdade() {
+        return idade;
+    }
+}

@@ -1,0 +1,119 @@
+// Teste completo do compilador X++ - Etapa 3
+// Demonstra o uso da tabela de símbolos diferenciando
+// identificadores de palavras reservadas
+
+class Pessoa {
+    // Variáveis de instância
+    int idade;
+    string nome;
+    string cpf;
+
+    // Construtor
+    constructor(int i, string n, string c) {
+        idade = i;
+        nome = n;
+        cpf = c;
+    }
+
+    // Métodos
+    int getIdade() {
+        return idade;
+    }
+
+    string getNome() {
+        return nome;
+    }
+
+    int fazerAniversario() {
+        idade = idade + 1;
+        print "Parabens!";
+        return idade;
+    }
+}
+
+class Estudante extends Pessoa {
+    string matricula;
+    int qtdNotas;
+
+    constructor(int i, string n, string c, string m) {
+        super(i, n, c);
+        matricula = m;
+        qtdNotas = 0;
+    }
+
+    string getMatricula() {
+        return matricula;
+    }
+
+    int adicionarNota(int nota) {
+        if (qtdNotas < 10) {
+            qtdNotas = qtdNotas + 1;
+            return 1;
+        } else {
+            print "Limite de notas atingido";
+            return 0;
+        }
+    }
+
+    int calcularMedia() {
+        int soma, media;
+
+        soma = 100;
+
+        if (qtdNotas > 0) {
+            media = soma / qtdNotas;
+            return media;
+        }
+
+        return 0;
+    }
+
+    int exibirDados() {
+        print "Nome: ";
+        print nome;
+        print "Idade: ";
+        print idade;
+        print "Matricula: ";
+        print matricula;
+        return 1;
+    }
+}
+
+class Sistema {
+    int totalEstudantes;
+    int capacidade;
+
+    constructor() {
+        totalEstudantes = 0;
+        capacidade = 100;
+    }
+
+    int cadastrarEstudante() {
+        int resultado;
+        
+        if (totalEstudantes < capacidade) {
+            totalEstudantes = totalEstudantes + 1;
+            print "Estudante cadastrado com sucesso!";
+            return 1;
+        }
+        
+        print "Limite de estudantes atingido";
+        return 0;
+    }
+
+    int listarEstudantes() {
+        int i;
+        
+        for (i = 0; i < totalEstudantes; i = i + 1) {
+            print "--- Estudante ";
+            print i + 1;
+            print " ---";
+        }
+        
+        return totalEstudantes;
+    }
+
+    int getTotalEstudantes() {
+        return totalEstudantes;
+    }
+}
