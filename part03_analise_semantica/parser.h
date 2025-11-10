@@ -14,6 +14,10 @@ private:
     Scanner* scanner;         // Scanner object to tokenize the input
     Token* lToken;            // Current token
     SymbolTable* symbolTable; // Symbol table for semantic analysis
+    SymbolTable* currentScope; // Current scope (for nested scopes)
+    string currentClass;      // Nome da classe atual sendo processada
+    string currentType;       // Tipo atual sendo processado
+    bool currentIsArray;      // Se o tipo atual é array
 
     // Method to advance to the next token
     void advance();
@@ -66,6 +70,16 @@ private:
     // Helper methods to check token types
     bool isType();               // Check if the current token is a type (int, string, ID)
     bool isStatement();          // Check if the current token starts a statement
+
+    // Semantic analysis helper methods
+    void enterScope();           // Cria um novo escopo (tabela filha)
+    void exitScope();            // Retorna ao escopo pai
+    void declareClass(string className, string parentClass = ""); // Declara uma classe
+    void declareVariable(string varName, string varType, bool isArray); // Declara uma variável
+    void declareMethod(string methodName, string returnType, bool isArray); // Declara um método
+    void checkVariableDeclared(string varName); // Verifica se variável foi declarada
+    void checkClassDeclared(string className);  // Verifica se classe foi declarada
+    void semanticError(string message); // Lança erro semântico
 
     // Method to throw a syntax error with a message
     void error(string str);

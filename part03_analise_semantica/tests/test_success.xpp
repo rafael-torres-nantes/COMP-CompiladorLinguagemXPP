@@ -1,0 +1,12 @@
+// Teste de análise semântica - SUCESSO
+// Estrutura correta: variáveis int/string primeiro, depois métodos
+
+class Pessoa {
+    int idade;
+    string nome;
+    
+    constructor(int i, string n) {
+        idade = i;
+        nome = n;
+    }
+}
