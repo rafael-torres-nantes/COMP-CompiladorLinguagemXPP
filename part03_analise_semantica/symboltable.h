@@ -5,11 +5,10 @@
 // para um objeto da classe `STEntry`.
 // A tabela suporta escopos hierárquicos através da referência à tabela pai.
 class SymbolTable {
-private:
+public:
     SymbolTable* parent; // Referência à tabela pai (escopo imediatamente anterior).
     std::map<std::string, STEntry*> symbols; // Armazena os símbolos do escopo atual.
 
-public:
     // Construtores para criar tabelas de símbolos, com ou sem um escopo pai.
     SymbolTable();
     SymbolTable(SymbolTable*);
