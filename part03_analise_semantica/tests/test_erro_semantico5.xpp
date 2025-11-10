@@ -1,0 +1,9 @@
+// Teste de ERRO semântico: Herança de classe não declarada
+
+class Cachorro extends Animal {  // ERRO: Classe pai 'Animal' não foi declarada
+    string raca;
+    
+    constructor(string r) {
+        raca = r;
+    }
+}

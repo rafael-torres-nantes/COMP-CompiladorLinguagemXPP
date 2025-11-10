@@ -1,0 +1,9 @@
+// Teste de ERRO semântico: Classe não declarada (new)
+
+class Teste {
+    int valor;
+    
+    constructor() {
+        valor = new Animal();  // ERRO: Classe 'Animal' não foi declarada
+    }
+}

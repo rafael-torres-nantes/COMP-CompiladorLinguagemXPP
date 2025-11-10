@@ -1,0 +1,40 @@
+// Teste simples de análise semântica
+
+class Pessoa {
+    int idade;
+    string nome;
+    
+    constructor(int i, string n) {
+        idade = i;
+        nome = n;
+    }
+    
+    string getNome() {
+        return nome;
+    }
+}
+
+class Sistema {
+    string titulo;
+    
+    string getTitulo() {
+        Pessoa p;
+        string resultado;
+        int numero;
+        
+        p = new Pessoa(25, "Joao");
+        resultado = p.getNome();
+        numero = 100;
+        
+        print resultado;
+        print numero;
+        
+        if (numero > 50) {
+            int temp;
+            temp = numero - 50;
+            print temp;
+        }
+        
+        return titulo;
+    }
+}

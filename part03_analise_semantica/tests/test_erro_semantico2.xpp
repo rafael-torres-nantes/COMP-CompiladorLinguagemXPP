@@ -1,0 +1,10 @@
+// Teste de ERRO semântico: Redeclaração de variável
+
+class Teste {
+    int valor;
+    int valor;  // ERRO: 'valor' já foi declarada
+    
+    int calcular() {
+        return valor;
+    }
+}

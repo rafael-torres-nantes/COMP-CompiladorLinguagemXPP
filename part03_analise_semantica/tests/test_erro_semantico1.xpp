@@ -1,0 +1,9 @@
+// Teste de ERRO semântico: Variável não declarada
+
+class Teste {
+    int valor;
+    
+    constructor() {
+        resultado = valor + 10;  // ERRO: 'resultado' não foi declarada
+    }
+}

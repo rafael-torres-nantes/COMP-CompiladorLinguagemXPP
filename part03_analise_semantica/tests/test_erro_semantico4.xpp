@@ -1,0 +1,9 @@
+// Teste de ERRO semântico: Redeclaração de classe
+
+class Animal {
+    int idade;
+}
+
+class Animal {  // ERRO: Classe 'Animal' já foi declarada
+    string nome;
+}
