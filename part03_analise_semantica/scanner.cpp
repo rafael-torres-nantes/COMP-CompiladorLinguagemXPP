@@ -1,12 +1,13 @@
 #include "superheader.h"
 
-// Construtor que recebe uma string com o nome do arquivo de entrada e preenche input com seu conteúdo.
-Scanner::Scanner(string fileName)
+// Construtor que recebe uma string com o nome do arquivo de entrada e a tabela de simbolos.
+Scanner::Scanner(string fileName, SymbolTable* st)
 {
     pos = 0;
     line = 1;
+    symbolTable = st; // Armazena referencia para a tabela de simbolos.
 
-    ifstream inputFile(fileName, ios::in); // Verifica se o arquivo está aberto
+    ifstream inputFile(fileName, ios::in); // Verifica se o arquivo esta aberto
     string fileLine;
 
     if (inputFile.is_open())
@@ -17,7 +18,7 @@ Scanner::Scanner(string fileName)
         }
         inputFile.close();
     }
-    else // Se não estiver
+    else // Se nao estiver
         cout << "Unable to open file\n";
 }
 
@@ -58,8 +59,8 @@ Token* Scanner::nextToken()
                 state = 9;
             else if (input[pos] == '/')
                 state = 10;
-            else if (input[pos] == '&')
-                state = 11;
+            else if (input[pos] == '%')
+                state = 50;
             else if (input[pos] == '!')
                 state = 16;
             else if (input[pos] == ')')
@@ -78,19 +79,20 @@ Token* Scanner::nextToken()
                 state = 26;
             else if (input[pos] == ';')
                 state = 27;
-            else if (input[pos] == '|')
-                state = 37;
-            else if (input[pos] == '\'')
-                state = 43;
+            else if (input[pos] == '.')
+                state = 51;
             else if (input[pos] == '\"')
                 state = 45;
-            else if (isalpha(input[pos]))
+            else if (isalpha(input[pos]) || input[pos] == '_')
             {
                 state = 1;
-                lexeme += input[pos]; // Palavra reservada
+                lexeme += input[pos];
             }
             else if (isdigit(input[pos]))
+            {
                 state = 3;
+                lexeme += input[pos];
+            }
             else if (isspace(input[pos]))
             {
                 if (input[pos] == '\n')
@@ -103,66 +105,77 @@ Token* Scanner::nextToken()
             pos++;
             break;
 
-        case 1: // Identificador e palavras reservadas
-            if (!isalnum(input[pos]) && input[pos] != '_')
+        case 1: // Identificador
+            if (isalnum(input[pos]) || input[pos] == '_')
+            {
+                lexeme += input[pos];
+                pos++;
+            }
+            else
             {
                 state = 2;
             }
-            else
-            {
-                lexeme += input[pos]; // Palavra reservada
-            }
-            pos++;
             break;
 
-        case 2: // Identificador e palavras reservadas
-            pos--;
-            if (lexeme == "char" || lexeme == "int" || lexeme == "else" ||
-                lexeme == "return" || lexeme == "void" || lexeme == "if" ||
-                lexeme == "while" || lexeme == "for")
-            {
-                state = 36; // Palavra reservada
+        case 2: // Retorna identificador ou palavra reservada usando a tabela de simbolos
+        {
+            // Consulta a tabela de simbolos para verificar se o lexema e uma palavra reservada.
+            STEntry* entry = symbolTable->get(lexeme);
+            
+            if (entry != nullptr && entry->reserved) {
+                // E uma palavra reservada: retorna o token correspondente da tabela.
+                token = new Token(entry->token->type, lexeme);
+            } else {
+                // E um identificador normal: cria um novo token ID.
+                token = new Token(ID, lexeme);
             }
-            else
-            {
-                state = 34; // Identificador normal
-            }
-            pos++;
-            break;
+            
+            return token;
+        }
 
         case 3: // Dígito
-            if (!isdigit(input[pos]))
-                state = 4;
-            else
+            if (isdigit(input[pos]))
+            {
                 lexeme += input[pos];
-
-            pos++;
+                pos++;
+            }
+            else
+                state = 4;
             break;
 
-        case 4: // Integer Constant
-            if (isalpha(input[pos])) {
+        case 4: // Integer Literal
+            if (isalpha(input[pos]) || input[pos] == '_') {
                 lexicalError();
             }
-            token = new Token(INTEGER_CONSTANT, lexeme);
-            pos--;
+            token = new Token(INTEGER_LITERAL, lexeme);
             return token;
 
 
         case 5: // <
             if (input[pos] == '=')
-                state = 39;
+            {
+                pos++;
+                token = new Token(LESS_OR_EQUAL_THAN);
+                return token;
+            }
             else
-                state = 40;
-            pos++;
-            break;
+            {
+                token = new Token(LESS_THAN);
+                return token;
+            }
 
         case 6: // >
             if (input[pos] == '=')
-                state = 41;
+            {
+                pos++;
+                token = new Token(GREATER_OR_EQUAL_THAN);
+                return token;
+            }
             else
-                state = 42;
-            pos++;
-            break;
+            {
+                token = new Token(GREATER_THAN);
+                return token;
+            }
 
         case 7: // *
             token = new Token(MULTIPLY_OPERATOR);
@@ -179,73 +192,46 @@ Token* Scanner::nextToken()
         case 10: // / ou comentário
             if (input[pos] == '/')
             {
-                state = 30;
-            }
-            else if (input[pos] == '*')
-            { // Comentário */
-                state = 32;
-            }
-            else
-            {
-                state = 31;
+                state = 30; // Comentário de linha
                 pos++;
             }
-            break;
-
-        case 11: // &&
-            if (input[pos] == '&')
-                state = 12;
+            else if (input[pos] == '*')
+            {
+                state = 32; // Comentário de bloco
+                pos++;
+            }
             else
-                lexicalError();
-
-            pos++;
+            {
+                token = new Token(DIVIDE_OPERATOR);
+                return token;
+            }
             break;
-
-        case 12: // &&
-            token = new Token(AND_OPERATOR);
-            return token;
 
         case 13: // == ou =
-            if (input[pos] == '=') // == 
-            {
-                state = 14;
-            }
-            else
-            { // = 
-                state = 15;
-            }
-
-            pos++;
-            break;
-
-        case 14: // == 
-            token = new Token(EQUAL);
-            return token;
-
-        case 15: // =
-            token = new Token(ASSIGNMENT);
-            pos--;
-            return token;
-
-        case 16: // != ou !
             if (input[pos] == '=')
             {
-                state = 17;
+                pos++;
+                token = new Token(EQUAL);
+                return token;
             }
             else
-            { // !
-                state = 18;
+            {
+                token = new Token(ASSIGNMENT);
+                return token;
+            }
+
+        case 16: // !=
+            if (input[pos] == '=')
+            {
+                pos++;
+                token = new Token(NOT_EQUAL);
+                return token;
+            }
+            else
+            {
+                lexicalError(); // ! sozinho não é um operador válido
             }
             break;
-
-        case 17: // !=
-            token = new Token(NOT_EQUAL);
-            pos++;
-            return token;
-
-        case 18: // !
-            token = new Token(NOT_OPERATOR);
-            return token;
 
         case 19: // )
             token = new Token(RIGHT_BRACKET);
@@ -283,7 +269,7 @@ Token* Scanner::nextToken()
             state = 0; // Retorna ao estado inicial
             break;
 
-        case 30: // Passa para o próximo enquanto não houver quebra de linha
+        case 30: // Comentário de linha - passa até o final da linha
             while (input[pos] != '\n' && input[pos] != '\0')
             {
                 pos++;
@@ -291,125 +277,55 @@ Token* Scanner::nextToken()
             state = 0;
             break;
 
-        case 31: // Divide
-            token = new Token(DIVIDE_OPERATOR);
-            pos--;
-            return token;
-
-        case 32: // Comentário */
+        case 32: // Comentário de bloco - procura por */
             if (input[pos] == '*')
                 state = 33;
             if (input[pos] == '\n')
                 line++;
+            if (input[pos] == '\0')
+                lexicalError(); // Comentário não fechado
 
             pos++;
             break;
 
-        case 33: // Comentário continua
+        case 33: // Continuação do comentário de bloco
             if (input[pos] == '/')
+            {
                 state = 0;
+                pos++;
+            }
             else
                 state = 32;
-
-            pos++;
             break;
-
-        case 34: // Identificador normal
-            token = new Token(ID, lexeme);
-            pos--;
-            return token;
-
-        case 36: // Palavra reservada
-            token = new Token(RESERVED_WORD, lexeme);
-            pos--;
-            return token;
-
-        case 37: // ||
-            if (input[pos] == '|')
-                state = 38;
-            else
-                lexicalError();
-
-            pos++;
-            break;
-
-        case 38: // ||
-            token = new Token(OR_OPERATOR);
-            return token;
-
-        case 39: // <=
-            token = new Token(LESS_OR_EQUAL_THAN);
-            return token;
-
-        case 40: // <
-            token = new Token(LESS_THAN);
-            pos--;
-            return token;
-
-        case 41: // >=
-            token = new Token(GREATER_OR_EQUAL_THAN);
-            return token;
-
-        case 42: // >
-            token = new Token(GREATER_THAN);
-            pos--;
-            return token;
-
-        case 43: // Char literal '
-            pos++; // Avança para o próximo caractere após o apóstrofo inicial
-            if (input[pos] == '\\') {
-                // Verifica sequência de escape
-                pos++;
-                if (input[pos] == 'n' || input[pos] == '0') { // '\n' ou '\0'
-                    lexeme = string("\\") + input[pos];
-                } else {
-                    lexicalError(); // Qualquer outra sequência é inválida
-                }
-            } else if (isprint(input[pos]) && input[pos] != '\'' && input[pos] != '\\') {
-                // Verifica se é um caractere ASCII imprimível válido (exceto aspas simples e barra invertida)
-                lexeme = input[pos];
-            } else {
-                lexicalError();
-            }
-            pos++;
-            
-            // Verifica se há uma aspa simples de fechamento
-            if (input[pos] != '\'') {
-                lexicalError(); // Falta a aspa simples de fechamento
-            }
-            pos++;
-            token = new Token(CHAR_CONSTANT, lexeme);
-            return token;
-
 
         case 45: // String literal "
-            pos++; // Avança para o próximo caractere após a aspa dupla inicial
             lexeme.clear();
             
-            while (input[pos] != '\"') {
-                if (input[pos] == '\0') {
+            while (input[pos] != '\"')
+            {
+                if (input[pos] == '\0')
+                {
                     lexicalError(); // Fim inesperado da entrada
                 }
-                if (input[pos] == '\n') {
-                    lexicalError(); // Quebra de linha não permitida em uma string
-                }
-                if (input[pos] == '\\') {
-                    // Ignorar a sequência de escape válida na string
-                    pos++;
-                    if (input[pos] != '\\' && input[pos] != '\"') {
-                        lexicalError(); // Qualquer outra sequência de escape é inválida
-                    }
-                } else if (!isprint(input[pos])) {
-                    lexicalError(); // Caracteres não imprimíveis são inválidos em uma string
+                if (input[pos] == '\n')
+                {
+                    lexicalError(); // Quebra de linha não permitida em string
                 }
                 lexeme += input[pos];
                 pos++;
             }
             
             pos++; // Avança para além da aspa dupla de fechamento
-            token = new Token(STRING_CONSTANT, lexeme);
+            token = new Token(STRING_LITERAL, lexeme);
             return token;
 
+        case 50: // %
+            token = new Token(MODULO_OPERATOR);
+            return token;
+
+        case 51: // .
+            token = new Token(DOT);
+            return token;
 
         default:
             lexicalError();

@@ -3,19 +3,20 @@
 class Scanner 
 {
     private: 
-        string input;   //Armazena o texto de entrada, buffer de entrada
-        int pos;        //Posição atual no buffer
+        string input;   // Armazena o texto de entrada, buffer de entrada
+        int pos;        // Posicao atual no buffer
         int line;       // Qual linha do arquivo estou
+        SymbolTable* symbolTable; // Tabela de simbolos para diferenciar IDs de palavras reservadas
     
     public:
-    //Construtor
-        Scanner(string);    // arquivo de entrada
+        // Construtor
+        Scanner(string, SymbolTable*);    // Arquivo de entrada e tabela de simbolos
 
-        int getLine();      // get para retornar pois arq privado
+        int getLine();      // Get para retornar pois arq privado
     
-        //Método que retorna o próximo token da entrada
+        // Metodo que retorna o proximo token da entrada
         Token* nextToken();        
     
-        //Método para manipular erros
+        // Metodo para manipular erros
         void lexicalError();
 };
