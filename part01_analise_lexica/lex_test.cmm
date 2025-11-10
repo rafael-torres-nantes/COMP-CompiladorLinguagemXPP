@@ -1,0 +1,30 @@
+a 
+0 
+abc123 
+abc_abc 
+123 
+'\n' 
+'\0'
+"This is a string with spaces." 
++ 
+- 
+* 
+/ 
+= 
+== 
+!=
+<=
+< 
+>= 
+> 
+&& 
+|| 
+!
+()
+{}
+[]
+,
+;
+// Isso é comentário
+/* Isso é comentário */
+123abc
