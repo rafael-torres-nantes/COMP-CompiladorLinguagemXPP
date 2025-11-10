@@ -1,0 +1,8 @@
+class TesteSimples {
+    int x;
+    
+    int teste() {
+        x = 10;
+        return x;
+    }
+}

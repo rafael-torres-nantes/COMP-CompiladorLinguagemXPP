@@ -1,14 +1,28 @@
-void main (int abc123, char lucas) {
-    int ola[1];
-    int ola;
-    while (1 == 1) {
-        return 1;
+class MinhaClasse {
+    int x;
+    string nome;
+    
+    constructor(int a, string n) {
+        x = a;
+        nome = n;
     }
-    if (2 * 2 != 4);
-
-    if (2 * 2 != 4)
-        carlos[5]; 
-    else
-        2 * 6;
+    
+    int soma(int a, int b) {
+        return a + b;
+    }
 }
 
+class OutraClasse extends MinhaClasse {
+    int y;
+    
+    constructor(int a, string n, int valor) {
+        super(a, n);
+        y = valor;
+    }
+    
+    int imprime() {
+        print x;
+        print nome;
+        return 0;
+    }
+}
