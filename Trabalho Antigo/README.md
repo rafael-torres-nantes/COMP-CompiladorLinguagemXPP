@@ -1,4 +1,4 @@
-# Analisador Léxico e Sintático C--
+# Analisador Léxico e Sintático (Compilador C--)
 
 ## 👨‍💻 Projeto desenvolvido por: [Rafael Torres Nantes](https://github.com/rafael-torres-nantes) e [Sarah Baraldi](https://github.com/mbaraldi-sarah).
 
