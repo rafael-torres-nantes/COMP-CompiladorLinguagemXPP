@@ -142,10 +142,8 @@ void Parser::ClassBody() {
 void Parser::VarDeclListOpt() {
     // Processa todas as declaracoes de variaveis com tipos primitivos.
     while (lToken->type == INT || lToken->type == STRING) {
-        VarDecl(); // Analisa cada declaracao de variavel.
+        VarDecl();
     }
-    // Nota: Variáveis com tipo ID (classe) não são processadas aqui
-    // para evitar ambiguidade com metodos que retornam objetos.
 }
 
 // Producao: VarDecl → Type ID VarDeclOpt ; | Type [] ID VarDeclOpt ;
@@ -544,8 +542,13 @@ void Parser::ForStat() {
 
 // Producao: AtribStatOpt → AtribStat | ε
 // Analisa atribuicao opcional (usada no for).
+// Também pode ser uma declaração de variável (int i = 0)
 void Parser::AtribStatOpt() {
-    if (lToken->type == ID) {
+    if (lToken->type == INT || lToken->type == STRING) {
+        // Declaração de variável no for
+        VarDecl();
+    }
+    else if (lToken->type == ID) {
         AtribStat(); // Atribuicao presente.
     }
 }
