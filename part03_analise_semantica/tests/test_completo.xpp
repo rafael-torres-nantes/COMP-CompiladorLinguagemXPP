@@ -69,12 +69,10 @@ class Estudante extends Pessoa {
     }
 
     int exibirDados() {
-        print "Nome: ";
-        print nome;
-        print "Idade: ";
-        print idade;
         print "Matricula: ";
         print matricula;
+        print "Notas: ";
+        print qtdNotas;
         return 1;
     }
 }

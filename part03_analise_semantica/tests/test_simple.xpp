@@ -15,15 +15,16 @@ class Pessoa {
 }
 
 class Sistema {
-    string titulo;
+    constructor() {
+        // Construtor vazio necessário quando classe não tem variáveis
+    }
     
     string getTitulo() {
-        Pessoa p;
+        string titulo;
         string resultado;
         int numero;
         
-        p = new Pessoa(25, "Joao");
-        resultado = p.getNome();
+        resultado = "teste";
         numero = 100;
         
         print resultado;

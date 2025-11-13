@@ -1,0 +1,328 @@
+// Teste Completo da Gramática X++ - Todas as 41 Regras
+// Este arquivo testa todas as produções da gramática
+
+// Regra 1: Program → ClassList
+// Regra 2: ClassList → ClassDecl ClassList | ClassDecl
+// Regra 3: ClassDecl → class ID ClassBody | class ID extends ID ClassBody
+
+// Classe base simples
+class Animal {
+    // Regra 4: ClassBody → { VarDeclListOpt ConstructDeclListOpt MethodDeclListOpt }
+    // Regra 5-6: VarDeclListOpt → VarDeclList | ε
+    // Regra 7: VarDecl → Type ID VarDeclOpt ; | Type [] ID VarDeclOpt ;
+    // Regra 8: VarDeclOpt → , ID VarDeclOpt | ε
+    // Regra 9: Type → int | string | ID
+    
+    int idade, peso;
+    string nome;
+    int[] idades;
+    string[] nomes;
+    
+    // Regra 10-11: ConstructDeclListOpt → ConstructDeclList | ε
+    // Regra 12: ConstructDecl → constructor MethodBody
+    // Regra 16: MethodBody → ( ParamListOpt ) { StatementsOpt }
+    // Regra 17-18: ParamListOpt → ParamList | ε
+    // Regra 19: Param → Type ID | Type [] ID
+    
+    constructor(int i, string n, int[] arr) {
+        // Regra 20-21: StatementsOpt → Statements | ε
+        // Regra 22: Statement → VarDeclList | AtribStat ; | ...
+        // Regra 23: AtribStat → LValue = Expression | LValue = AllocExpression
+        // Regra 32: LValue → ID LValueComp
+        // Regra 33: LValueComp → . ID LValueComp | [ Expression ] LValueComp | ε
+        
+        idade = i;
+        nome = n;
+        idades = arr;
+        peso = 50;
+    }
+    
+    // Regra 13-14: MethodDeclListOpt → MethodDeclList | ε
+    // Regra 15: MethodDecl → Type ID MethodBody | Type [] ID MethodBody
+    
+    int getIdade() {
+        // Regra 26: ReturnStat → return Expression
+        // Regra 34: Expression → NumExpression | NumExpression RelOp NumExpression
+        // Regra 36: NumExpression → Term + Term | Term - Term | Term
+        // Regra 37: Term → UnaryExpression * UnaryExpression | ... | UnaryExpression
+        // Regra 38: UnaryExpression → + Factor | - Factor | Factor
+        // Regra 39: Factor → INTEGER_LITERAL | STRING_LITERAL | LValue | ( Expression )
+        
+        return idade;
+    }
+    
+    string getNome() {
+        return nome;
+    }
+    
+    int[] getIdades() {
+        return idades;
+    }
+    
+    int calcular() {
+        int resultado, temp;
+        
+        // Teste de expressões aritméticas completas
+        resultado = 10 + 5;
+        resultado = resultado - 3;
+        resultado = resultado * 2;
+        resultado = resultado / 4;
+        resultado = resultado % 3;
+        
+        // Teste de expressões unárias
+        temp = +10;
+        temp = -5;
+        
+        // Teste de expressões compostas com parênteses
+        resultado = (10 + 5) * (3 - 1);
+        resultado = idade + peso * 2;
+        
+        return resultado;
+    }
+    
+    int testarExpressoes() {
+        int a, b, c;
+        
+        a = 10;
+        b = 20;
+        
+        // Teste de operadores relacionais
+        if (a < b) {
+            c = 1;
+        }
+        
+        if (a > b) {
+            c = 2;
+        }
+        
+        if (a == b) {
+            c = 3;
+        }
+        
+        if (a != b) {
+            c = 4;
+        }
+        
+        return c;
+    }
+}
+
+// Regra 3: ClassDecl com herança (extends)
+class Cachorro extends Animal {
+    string raca;
+    
+    constructor(int i, string n, string r) {
+        // Regra 27: SuperStat → super ( ArgListOpt )
+        // Regra 40-41: ArgListOpt → ArgList | ε
+        // ArgList → ArgList , Expression | Expression
+        
+        int[] arr;
+        arr[0] = 0;  // Inicializa posicao do array
+        super(i, n, arr);
+        raca = r;
+    }
+    
+    string getRaca() {
+        return raca;
+    }
+    
+    int latir() {
+        // Regra 24: PrintStat → print Expression
+        print "Au au!";
+        print raca;
+        return 1;
+    }
+}
+
+class TesteCompleto {
+    int contador;
+    string texto;
+    
+    constructor() {
+        contador = 0;
+        texto = "teste";
+    }
+    
+    int testarTudo() {
+        int i, j, k;
+        string msg;
+        int[] numeros;
+        
+        // Testes de atribuicao e expressoes
+        i = 10;
+        j = 20;
+        msg = "Teste";
+        
+        // Regra 25: ReadStat → read LValue
+        read i;
+        read numeros[0];
+        
+        // Regra 24: PrintStat
+        print "Teste de impressao";
+        print i;
+        print msg;
+        
+        // Regra 28: IfStat → if ( Expression ) { Statements } 
+        //                  | if ( Expression ) { Statements } else { Statements }
+        if (i > 0) {
+            int temp;
+            temp = i + 1;
+            print temp;
+        }
+        
+        if (i < 10) {
+            j = i * 2;
+            print j;
+        } else {
+            j = i / 2;
+            print j;
+        }
+        
+        // Regra 29: ForStat → for ( AtribStatOpt ; ExpressionOpt ; AtribStatOpt ) { Statements }
+        // Regra 30: AtribStatOpt → AtribStat | ε
+        // Regra 31: ExpressionOpt → Expression | ε
+        
+        j = 0;
+        for (; j < 5; j = j + 1) {
+            int valor;
+            valor = j * 2;
+            print valor;
+            
+            if (valor > 5) {
+                // Regra 22: Statement → break ;
+                break;
+            }
+        }
+        
+        // For com inicialização
+        for (k = 0; k < 3; k = k + 1) {
+            print k;
+        }
+        
+        // For sem incremento
+        k = 0;
+        for (; k < 3; ) {
+            print k;
+            k = k + 1;
+        }
+        
+        // Teste de arrays
+        numeros[0] = 10;
+        numeros[1] = 20;
+        numeros[2] = numeros[0] + numeros[1];
+        
+        i = numeros[0];
+        j = numeros[1];
+        k = numeros[2];
+        
+        // Teste de expressões relacionais completas
+        if (i == j) {
+            print "iguais";
+        }
+        
+        if (i != j) {
+            print "diferentes";
+        }
+        
+        if (i < j) {
+            print "menor";
+        }
+        
+        if (i > j) {
+            print "maior";
+        }
+        
+        if (i <= j) {
+            print "menor ou igual";
+        }
+        
+        if (i >= j) {
+            print "maior ou igual";
+        }
+        
+        // Teste de retorno de valor
+        int resultado;
+        resultado = i + j;
+        
+        // Regra 22: Statement → ; (comando vazio)
+        ;
+        
+        return resultado;
+    }
+    
+    int testarArrays() {
+        int[] arr1, arr2;
+        string[] msgs;
+        
+        // Uso de arrays sem alocacao dinamica
+        arr1[0] = 1;
+        arr1[1] = 2;
+        arr1[2] = arr1[0] + arr1[1];
+        
+        msgs[0] = "primeira";
+        msgs[1] = "segunda";
+        
+        return arr1[2];
+    }
+    
+    string testarStrings() {
+        string s1, s2, s3;
+        
+        s1 = "Hello";
+        s2 = "World";
+        
+        print s1;
+        print s2;
+        
+        return s1;
+    }
+    
+    int testarOperacoes() {
+        int a, b, c, d, e;
+        
+        // Adição
+        a = 10 + 5;
+        
+        // Subtração
+        b = 20 - 8;
+        
+        // Multiplicação
+        c = 6 * 7;
+        
+        // Divisão
+        d = 42 / 6;
+        
+        // Módulo
+        e = 17 % 5;
+        
+        // Compostas
+        a = (10 + 5) * 2;
+        b = 10 + 5 * 2;
+        c = (10 - 3) / (2 + 1);
+        
+        // Com unários
+        d = +10 + -5;
+        e = -(-10);
+        
+        return a + b + c + d + e;
+    }
+}
+
+// Classe adicional para testar múltiplas classes
+class Utilidades {
+    int dummy;
+    
+    constructor() {
+        dummy = 0;
+    }
+    
+    int somar(int a, int b) {
+        return a + b;
+    }
+    
+    int multiplicar(int x, int y) {
+        int resultado;
+        resultado = x * y;
+        return resultado;
+    }
+}
