@@ -4,28 +4,28 @@ using namespace std;
 
 class Parser {
 public:
-    // Constructor that initializes the scanner with the input file and symbol table
+    // Construtor que inicializa o scanner com o arquivo de entrada e a tabela de símbolos
     Parser(string input, SymbolTable* st);
 
-    // Method to start the parsing process
+    // Método para iniciar o processo de parsing
     void run();
 
 private:
-    Scanner* scanner;         // Scanner object to tokenize the input
-    Token* lToken;            // Current token
-    SymbolTable* symbolTable; // Symbol table for semantic analysis
-    SymbolTable* currentScope; // Current scope (for nested scopes)
+    Scanner* scanner;         // Objeto Scanner para tokenizar a entrada
+    Token* lToken;            // Token atual
+    SymbolTable* symbolTable; // Tabela de símbolos para análise semântica
+    SymbolTable* currentScope; // Escopo atual (para escopos aninhados)
     string currentClass;      // Nome da classe atual sendo processada
     string currentType;       // Tipo atual sendo processado
     bool currentIsArray;      // Se o tipo atual é array
 
-    // Method to advance to the next token
+    // Avança para o próximo token
     void advance();
 
-    // Method to match the current token with the expected token type
+    // Verifica se o token atual corresponde ao tipo esperado e avança
     void match(int t);
 
-    // Grammar production methods for X++ language
+    // Métodos das produções gramaticais para a linguagem X++
     void Program();              // Program → ClassList
     void ClassList();            // ClassList → ClassDecl ClassList | ClassDecl
     void ClassDecl();            // ClassDecl → class ID ClassBody | class ID extends ID ClassBody
@@ -84,12 +84,11 @@ private:
     // Method to throw a syntax error with a message
     void error(string str);
 };
-
-// Comments:
-// - The Parser class is responsible for parsing the input string according to the specified grammar.
-// - The run() method starts the parsing process by calling the Program() method.
-// - The advance() method advances to the next token using the scanner.
-// - The match() method checks if the current token matches the expected token type and lexeme, and advances if it does.
-// - The grammar production methods (Program, Function, VarDeclaration, etc.) implement the parsing rules for each non-terminal in the grammar.
-// - The helper methods (isType, isStatement, isExpression) check if the current token matches specific criteria.
-// - The error() method throws a runtime error with a syntax error message, including the line number.
+// Comentários:
+// - A classe Parser é responsável por analisar (parsear) a string de entrada de acordo com a gramática especificada.
+// - O método run() inicia o processo de parsing chamando o método Program().
+// - O método advance() avança para o próximo token usando o scanner.
+// - O método match() verifica se o token atual corresponde ao tipo de token e, quando aplicável, ao lexema esperado, avançando em caso positivo.
+// - Os métodos das produções gramaticais (Program, Function, VarDeclaration, etc.) implementam as regras de parsing para cada não-terminal da gramática.
+// - Os métodos auxiliares (isType, isStatement, isExpression) verificam se o token atual atende a critérios específicos.
+// - O método error() lança um runtime_error com uma mensagem de erro de sintaxe, incluindo o número da linha.

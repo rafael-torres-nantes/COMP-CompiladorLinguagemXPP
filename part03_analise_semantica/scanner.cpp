@@ -1,6 +1,5 @@
 #include "superheader.h"
 
-// Construtor que recebe uma string com o nome do arquivo de entrada e a tabela de simbolos.
 Scanner::Scanner(string fileName, SymbolTable* st)
 {
     pos = 0;

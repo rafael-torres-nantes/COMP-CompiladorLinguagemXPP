@@ -5,14 +5,12 @@ SymbolTable::SymbolTable() {
     parent = nullptr;
 }
 
-// Construtor que inicializa uma nova tabela de símbolos especificando um escopo pai.
 // O escopo pai é usado para busca hierárquica de símbolos em escopos mais amplos.
 SymbolTable::SymbolTable(SymbolTable* p) {
     parent = p;
 }
 
 // Tenta adicionar um novo símbolo à tabela atual.
-// Verifica se já existe uma entrada para o lexema na tabela atual:
 // - Se já houver um símbolo com o mesmo lexema, a função retorna `false` sem adicionar.
 // - Caso contrário, o símbolo é inserido e a função retorna `true`.
 bool SymbolTable::add(STEntry* t) {
@@ -24,7 +22,6 @@ bool SymbolTable::add(STEntry* t) {
 }
 
 // Remove um símbolo da tabela baseado no lexema fornecido.
-// Retorna `true` se a remoção foi bem-sucedida (símbolo encontrado e removido),
 // ou `false` caso contrário.
 bool SymbolTable::remove(string name) {
     return symbols.erase(name) != 0;
@@ -35,8 +32,6 @@ void SymbolTable::clear() {
     symbols.clear();
 }
 
-// Verifica se a tabela de símbolos está vazia.
-// Retorna `true` se não houver nenhum símbolo registrado.
 bool SymbolTable::isEmpty() {
     return symbols.empty();
 }
@@ -60,7 +55,6 @@ STEntry* SymbolTable::get(string name) {
     return s->second;
 }
 
-// Retorna um ponteiro para a tabela pai (escopo anterior).
 // Útil para navegação hierárquica entre diferentes escopos.
 SymbolTable* SymbolTable::getParent() {
     return parent;

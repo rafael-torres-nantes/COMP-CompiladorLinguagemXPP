@@ -6,40 +6,36 @@
 *
 ***********************************************************/
 
-// Construtor da classe Parser que recebe o nome do arquivo de entrada e a tabela de simbolos.
 Parser::Parser(string input, SymbolTable* st) {
-    symbolTable = st; // Armazena referencia para a tabela de simbolos.
-    currentScope = st; // Inicialmente, o escopo atual é o global.
-    currentClass = ""; // Nenhuma classe sendo processada inicialmente.
-    currentType = ""; // Nenhum tipo sendo processado inicialmente.
-    currentIsArray = false; // Por padrão, não é array.
-    scanner = new Scanner(input, symbolTable); // Cria um novo scanner com a tabela de simbolos.
-    advance(); // Obtem o primeiro token.
+    symbolTable = st;
+    currentScope = st;
+    currentClass = "";
+    currentType = "";
+    currentIsArray = false;
+    scanner = new Scanner(input, symbolTable);
+    advance();
 }
 
-// Metodo principal que inicia o processo de análise sintática.
 void Parser::run() {
     try {
-        Program(); // Inicia a análise do programa.
-        cout << "Compilacao finalizada com sucesso." << endl; // Sucesso.
+        Program();
+        cout << "Compilacao finalizada com sucesso." << endl;
     } catch (const runtime_error& e) {
-        cout << e.what() << endl; // Exibe mensagem de erro se houver falha.
+        cout << e.what() << endl;
     }
 }
 
-// Avanca para o próximo token no scanner.
 void Parser::advance() {
-    lToken = scanner->nextToken(); // Atualiza o token atual.
+    lToken = scanner->nextToken();
 }
 
-// Verifica se o token atual corresponde ao esperado e avanca para o próximo.
 void Parser::match(int t) {   
     if (lToken->type == t) {
-        advance(); // Avanca se o token for o esperado.
+        advance();
     } else {
         cout << "Esperava: " << Token::getTokenTypeName(t) << endl;
         cout << "Encontrou: " << Token::getTokenTypeName(lToken->type) << " ('" << lToken->lexeme << "')" << endl;
-        error("Token inesperado em match()"); // Erro se o token nao for o esperado.
+        error("Token inesperado em match()");
     }
 }
 
@@ -49,11 +45,10 @@ void Parser::match(int t) {
 *
 ***********************************************************/
 
-// Producao principal: Program → ClassList
-// Representa o programa completo composto por uma lista de classes.
+// Regra 1: Program → ClassList
 void Parser::Program() {
-    ClassList(); // Analisa a lista de classes.
-    match(END_OF_FILE); // Espera que o arquivo termine corretamente.
+    ClassList();
+    match(END_OF_FILE);
 }
 
 /**********************************************************
@@ -62,12 +57,11 @@ void Parser::Program() {
 *
 ***********************************************************/
 
-// Producao: ClassList → ClassDecl ClassList | ClassDecl
-// Analisa uma ou mais declaracoes de classes.
+// Regra 2: ClassList → ClassDecl ClassList | ClassDecl
 void Parser::ClassList() {
-    ClassDecl(); // Analisa uma declaracao de classe.
+    ClassDecl();
     if (lToken->type == CLASS) {
-        ClassList(); // Se houver mais classes, analisa recursivamente.
+        ClassList();
     }
 }
 
@@ -77,22 +71,20 @@ void Parser::ClassList() {
 *
 ***********************************************************/
 
-// Producao: ClassDecl → class ID ClassBody | class ID extends ID ClassBody
-// Reconhece a definicao de uma classe, com ou sem heranca.
+// Regra 3: ClassDecl → class ID ClassBody | class ID extends ID ClassBody
 void Parser::ClassDecl() {
-    match(CLASS); // Espera a palavra reservada 'class'.
+    match(CLASS);
     
-    // Captura o nome da classe.
     if (lToken->type != ID) {
         error("Nome da classe esperado");
     }
     string className = lToken->lexeme;
     currentClass = className;
-    match(ID); // Espera o identificador (nome da classe).
+    match(ID);
     
     string parentClass = "";
     if (lToken->type == EXTENDS) {
-        advance(); // Se houver 'extends', avanca.
+        advance();
         if (lToken->type != ID) {
             error("Nome da classe pai esperado");
         }
@@ -103,12 +95,10 @@ void Parser::ClassDecl() {
     // ANÁLISE SEMÂNTICA: Declara a classe na tabela de símbolos.
     declareClass(className, parentClass);
     
-    // Cria um novo escopo para o corpo da classe.
     enterScope();
     
     ClassBody(); // Analisa o corpo da classe.
     
-    // Retorna ao escopo global.
     exitScope();
     currentClass = "";
 }
@@ -119,8 +109,7 @@ void Parser::ClassDecl() {
 *
 ***********************************************************/
 
-// Producao: ClassBody → { VarDeclListOpt ConstructDeclListOpt MethodDeclListOpt }
-// Analisa o corpo da classe contendo variaveis, construtores e metodos.
+// Regra ClassBody → { VarDeclListOpt ConstructDeclListOpt MethodDeclListOpt }
 void Parser::ClassBody() {
     match(LEFT_CURLY_BRACE); // Abre o corpo da classe.
     VarDeclListOpt(); // Analisa declaracoes de variaveis (opcional).
@@ -136,24 +125,19 @@ void Parser::ClassBody() {
 *
 ***********************************************************/
 
-// Producao: VarDeclListOpt → VarDeclList | ε
-// Analisa zero ou mais declaracoes de variaveis.
+// Regra VarDeclListOpt → VarDeclList | ε
 // IMPORTANTE: Todas as variaveis devem ser declaradas ANTES dos metodos.
 void Parser::VarDeclListOpt() {
-    // Processa todas as declaracoes de variaveis com tipos primitivos.
     while (lToken->type == INT || lToken->type == STRING) {
         VarDecl();
     }
 }
 
-// Producao: VarDecl → Type ID VarDeclOpt ; | Type [] ID VarDeclOpt ;
-// Analisa a declaracao de uma ou mais variaveis do mesmo tipo.
+// Regra VarDecl → Type ID VarDeclOpt ; | Type [] ID VarDeclOpt ;
 void Parser::VarDecl() {
-    // Captura o tipo da variável.
     currentType = lToken->lexeme;
     Type(); // Analisa o tipo da variavel.
     
-    // Verifica se é um array.
     currentIsArray = false;
     if (lToken->type == LEFT_SQUARE_BRACKET) {
         currentIsArray = true;
@@ -161,7 +145,6 @@ void Parser::VarDecl() {
         match(RIGHT_SQUARE_BRACKET);
     }
     
-    // Espera o identificador da variavel.
     if (lToken->type != ID) {
         error("ID esperado na declaracao");
     }
@@ -176,8 +159,7 @@ void Parser::VarDecl() {
     match(SEMICOLON); // Espera ponto e virgula ao final.
 }
 
-// Producao: VarDeclOpt → , ID VarDeclOpt | ε
-// Analisa declaracoes adicionais de variaveis separadas por virgula.
+// Regra VarDeclOpt → , ID VarDeclOpt | ε
 void Parser::VarDeclOpt() {
     if (lToken->type == COMMA) {
         advance(); // Consome a virgula.
@@ -195,8 +177,7 @@ void Parser::VarDeclOpt() {
     }
 }
 
-// Producao: Type → int | string | ID
-// Reconhece tipos primitivos ou classes personalizadas.
+// Regra Type → int | string | ID
 void Parser::Type() {
     if (lToken->type == INT || lToken->type == STRING || lToken->type == ID) {
         advance(); // Avanca se o tipo for valido.
@@ -211,16 +192,14 @@ void Parser::Type() {
 *
 ***********************************************************/
 
-// Producao: ConstructDeclListOpt → ConstructDeclList | ε
-// Analisa zero ou mais declaracoes de construtores.
+// Regra ConstructDeclListOpt → ConstructDeclList | ε
 void Parser::ConstructDeclListOpt() {
     if (lToken->type == CONSTRUCTOR) {
         ConstructDeclList(); // Se houver construtor, analisa a lista.
     }
 }
 
-// Producao: ConstructDeclList → ConstructDeclList ConstructDecl | ConstructDecl
-// Analisa um ou mais construtores da classe.
+// Regra ConstructDeclList → ConstructDeclList ConstructDecl | ConstructDecl
 void Parser::ConstructDeclList() {
     ConstructDecl(); // Analisa um construtor.
     if (lToken->type == CONSTRUCTOR) {
@@ -228,8 +207,7 @@ void Parser::ConstructDeclList() {
     }
 }
 
-// Producao: ConstructDecl → constructor MethodBody
-// Analisa a declaracao de um construtor.
+// Regra ConstructDecl → constructor MethodBody
 void Parser::ConstructDecl() {
     match(CONSTRUCTOR); // Espera a palavra reservada 'constructor'.
     
@@ -248,16 +226,14 @@ void Parser::ConstructDecl() {
 *
 ***********************************************************/
 
-// Producao: MethodDeclListOpt → MethodDeclList | ε
-// Analisa zero ou mais declaracoes de metodos.
+// Regra MethodDeclListOpt → MethodDeclList | ε
 void Parser::MethodDeclListOpt() {
     if (isType()) {
         MethodDeclList(); // Se houver tipo, analisa a lista de metodos.
     }
 }
 
-// Producao: MethodDeclList → MethodDeclList MethodDecl | MethodDecl
-// Analisa um ou mais metodos da classe.
+// Regra MethodDeclList → MethodDeclList MethodDecl | MethodDecl
 void Parser::MethodDeclList() {
     MethodDecl(); // Analisa um metodo.
     if (isType()) {
@@ -265,14 +241,11 @@ void Parser::MethodDeclList() {
     }
 }
 
-// Producao: MethodDecl → Type ID MethodBody | Type [] ID MethodBody
-// Analisa a declaracao de um metodo com seu tipo de retorno.
+// Regra MethodDecl → Type ID MethodBody | Type [] ID MethodBody
 void Parser::MethodDecl() {
-    // Captura o tipo de retorno.
     currentType = lToken->lexeme;
     Type(); // Analisa o tipo de retorno.
     
-    // Verifica se retorna um array.
     currentIsArray = false;
     if (lToken->type == LEFT_SQUARE_BRACKET) {
         currentIsArray = true;
@@ -280,7 +253,6 @@ void Parser::MethodDecl() {
         match(RIGHT_SQUARE_BRACKET);
     }
     
-    // Captura o nome do método.
     if (lToken->type != ID) {
         error("Nome do metodo esperado");
     }
@@ -297,8 +269,7 @@ void Parser::MethodDecl() {
     exitScope();
 }
 
-// Producao: MethodBody → ( ParamListOpt ) { StatementsOpt }
-// Analisa o corpo de um metodo ou construtor.
+// Regra MethodBody → ( ParamListOpt ) { StatementsOpt }
 void Parser::MethodBody() {
     match(LEFT_BRACKET); // Abre lista de parametros.
     ParamListOpt(); // Analisa parametros (opcional).
@@ -314,16 +285,14 @@ void Parser::MethodBody() {
 *
 ***********************************************************/
 
-// Producao: ParamListOpt → ParamList | ε
-// Analisa zero ou mais parametros de um metodo ou construtor.
+// Regra ParamListOpt → ParamList | ε
 void Parser::ParamListOpt() {
     if (isType()) {
         ParamList(); // Se houver tipo, analisa a lista de parametros.
     }
 }
 
-// Producao: ParamList → ParamList , Param | Param
-// Analisa um ou mais parametros separados por virgula.
+// Regra ParamList → ParamList , Param | Param
 void Parser::ParamList() {
     Param(); // Analisa o primeiro parametro.
     while (lToken->type == COMMA) {
@@ -332,14 +301,11 @@ void Parser::ParamList() {
     }
 }
 
-// Producao: Param → Type ID | Type [] ID
-// Analisa um parametro com seu tipo e identificador.
+// Regra Param → Type ID | Type [] ID
 void Parser::Param() {
-    // Captura o tipo do parâmetro.
     currentType = lToken->lexeme;
     Type(); // Analisa o tipo do parametro.
     
-    // Verifica se é um array.
     currentIsArray = false;
     if (lToken->type == LEFT_SQUARE_BRACKET) {
         currentIsArray = true;
@@ -347,7 +313,6 @@ void Parser::Param() {
         match(RIGHT_SQUARE_BRACKET);
     }
     
-    // Captura o nome do parâmetro.
     if (lToken->type != ID) {
         error("Nome do parametro esperado");
     }
@@ -374,27 +339,23 @@ void Parser::Param() {
 *
 ***********************************************************/
 
-// Producao: StatementsOpt → Statements | ε
-// Analisa zero ou mais comandos dentro de um bloco.
+// Regra StatementsOpt → Statements | ε
 void Parser::StatementsOpt() {
     if (isStatement()) {
         Statements(); // Se houver comando, analisa a lista de comandos.
     }
 }
 
-// Producao: Statements → Statements Statement | Statement
-// Analisa uma sequencia de comandos.
+// Regra Statements → Statements Statement | Statement
 void Parser::Statements() {
     while (isStatement()) {
         Statement(); // Analisa cada comando da sequencia.
     }
 }
 
-// Producao: Statement → VarDeclList | AtribStat ; | PrintStat ; | ReadStat ; 
+// Regra Statement → VarDeclList | AtribStat ; | PrintStat ; | ReadStat ; 
 //                     | ReturnStat ; | SuperStat ; | IfStat | ForStat | break ; | ;
-// Reconhece e analisa diferentes tipos de comandos.
 void Parser::Statement() {
-    // Verifica se é uma declaracao de variavel (tipos primitivos).
     if (lToken->type == INT || lToken->type == STRING) {
         VarDecl(); // Declaracao de variavel dentro de metodo.
     }
@@ -443,13 +404,11 @@ void Parser::Statement() {
 *
 ***********************************************************/
 
-// Producao: AtribStat → LValue = Expression | LValue = AllocExpression
-// Analisa comandos de atribuicao.
+// Regra AtribStat → LValue = Expression | LValue = AllocExpression
 void Parser::AtribStat() {
     LValue(); // Lado esquerdo da atribuicao (variavel, array, ou membro).
     match(ASSIGNMENT); // Espera o operador de atribuicao '='.
     
-    // Verifica se é uma alocacao (new ou array).
     if (lToken->type == NEW || lToken->type == INT || lToken->type == STRING) {
         AllocExpression(); // Alocacao de objeto ou array.
     } else {
@@ -457,29 +416,25 @@ void Parser::AtribStat() {
     }
 }
 
-// Producao: PrintStat → print Expression
-// Analisa comando de impressao.
+// Regra PrintStat → print Expression
 void Parser::PrintStat() {
     match(PRINT); // Espera a palavra reservada 'print'.
     Expression(); // Expressao a ser impressa.
 }
 
-// Producao: ReadStat → read LValue
-// Analisa comando de leitura.
+// Regra ReadStat → read LValue
 void Parser::ReadStat() {
     match(READ); // Espera a palavra reservada 'read'.
     LValue(); // Variavel onde o valor sera armazenado.
 }
 
-// Producao: ReturnStat → return Expression
-// Analisa comando de retorno de funcao.
+// Regra ReturnStat → return Expression
 void Parser::ReturnStat() {
     match(RETURN); // Espera a palavra reservada 'return'.
     Expression(); // Expressao a ser retornada.
 }
 
-// Producao: SuperStat → super ( ArgListOpt )
-// Analisa chamada ao construtor da superclasse.
+// Regra SuperStat → super ( ArgListOpt )
 void Parser::SuperStat() {
     match(SUPER); // Espera a palavra reservada 'super'.
     match(LEFT_BRACKET); // Abre lista de argumentos.
@@ -487,9 +442,8 @@ void Parser::SuperStat() {
     match(RIGHT_BRACKET); // Fecha lista de argumentos.
 }
 
-// Producao: IfStat → if ( Expression ) { Statements } 
+// Regra IfStat → if ( Expression ) { Statements } 
 //                  | if ( Expression ) { Statements } else { Statements }
-// Analisa comando condicional if-else.
 void Parser::IfStat() {
     match(IF); // Espera a palavra reservada 'if'.
     match(LEFT_BRACKET); // Abre expressao condicional.
@@ -504,7 +458,6 @@ void Parser::IfStat() {
     
     match(RIGHT_CURLY_BRACE); // Fecha bloco do if.
     
-    // Verifica se ha clausula else.
     if (lToken->type == ELSE) {
         advance(); // Consome 'else'.
         match(LEFT_CURLY_BRACE); // Abre bloco do else.
@@ -518,8 +471,7 @@ void Parser::IfStat() {
     }
 }
 
-// Producao: ForStat → for ( AtribStatOpt ; ExpressionOpt ; AtribStatOpt ) { Statements }
-// Analisa comando de repeticao for.
+// Regra ForStat → for ( AtribStatOpt ; ExpressionOpt ; AtribStatOpt ) { Statements }
 void Parser::ForStat() {
     match(FOR); // Espera a palavra reservada 'for'.
     match(LEFT_BRACKET); // Abre estrutura do for.
@@ -540,8 +492,7 @@ void Parser::ForStat() {
     exitScope(); // Sai do escopo do for.
 }
 
-// Producao: AtribStatOpt → AtribStat | ε
-// Analisa atribuicao opcional (usada no for).
+// Regra AtribStatOpt → AtribStat | ε
 // Também pode ser uma declaração de variável (int i = 0)
 void Parser::AtribStatOpt() {
     if (lToken->type == INT || lToken->type == STRING) {
@@ -553,8 +504,7 @@ void Parser::AtribStatOpt() {
     }
 }
 
-// Producao: ExpressionOpt → Expression | ε
-// Analisa expressao opcional (usada no for).
+// Regra ExpressionOpt → Expression | ε
 void Parser::ExpressionOpt() {
     if (lToken->type == ID || lToken->type == INTEGER_LITERAL || 
         lToken->type == STRING_LITERAL || lToken->type == PLUS_OPERATOR || 
@@ -570,8 +520,7 @@ void Parser::ExpressionOpt() {
 *
 ***********************************************************/
 
-// Producao: LValue → ID LValueComp
-// Analisa o lado esquerdo de uma atribuicao ou acesso.
+// Regra LValue → ID LValueComp
 void Parser::LValue() {
     if (lToken->type != ID) {
         error("Identificador esperado");
@@ -586,12 +535,11 @@ void Parser::LValue() {
     LValueComp(); // Complemento opcional (acesso a membro, array, ou metodo).
 }
 
-// Producao: LValueComp → . ID LValueComp 
+// Regra LValueComp → . ID LValueComp 
 //                      | . ID [ Expression ] LValueComp 
 //                      | . ID ( ArgListOpt ) LValueComp 
 //                      | [ Expression ] LValueComp 
 //                      | ε
-// Analisa complementos de LValue (acesso a membros, arrays e chamadas).
 void Parser::LValueComp() {
     if (lToken->type == DOT) {
         advance(); // Consome o ponto (acesso a membro).
@@ -627,12 +575,10 @@ void Parser::LValueComp() {
 *
 ***********************************************************/
 
-// Producao: Expression → NumExpression | NumExpression RelOp NumExpression
-// Analisa expressoes aritmeticas e relacionais.
+// Regra Expression → NumExpression | NumExpression RelOp NumExpression
 void Parser::Expression() {
     NumExpression(); // Primeira expressao numerica.
     
-    // Verifica se ha operador relacional (<, >, <=, >=, ==, !=).
     if (lToken->type == EQUAL || lToken->type == NOT_EQUAL || 
         lToken->type == LESS_THAN || lToken->type == GREATER_THAN || 
         lToken->type == LESS_OR_EQUAL_THAN || lToken->type == GREATER_OR_EQUAL_THAN) {
@@ -641,8 +587,7 @@ void Parser::Expression() {
     }
 }
 
-// Producao: AllocExpression → new ID ( ArgListOpt ) | Type [ Expression ]
-// Analisa alocacao de objetos ou arrays.
+// Regra AllocExpression → new ID ( ArgListOpt ) | Type [ Expression ]
 void Parser::AllocExpression() {
     if (lToken->type == NEW) {
         // Alocacao de objeto: new ID(args)
@@ -687,8 +632,7 @@ void Parser::AllocExpression() {
     }
 }
 
-// Producao: NumExpression → Term + Term | Term - Term | Term
-// Analisa expressoes de adicao e subtracao.
+// Regra NumExpression → Term + Term | Term - Term | Term
 void Parser::NumExpression() {
     Term(); // Primeiro termo.
     
@@ -699,11 +643,10 @@ void Parser::NumExpression() {
     }
 }
 
-// Producao: Term → UnaryExpression * UnaryExpression 
+// Regra Term → UnaryExpression * UnaryExpression 
 //                | UnaryExpression / UnaryExpression 
 //                | UnaryExpression % UnaryExpression 
 //                | UnaryExpression
-// Analisa expressoes de multiplicacao, divisao e modulo.
 void Parser::Term() {
     UnaryExpression(); // Primeira expressao unaria.
     
@@ -716,8 +659,7 @@ void Parser::Term() {
     }
 }
 
-// Producao: UnaryExpression → + Factor | - Factor | Factor
-// Analisa expressoes unarias (com operador + ou -).
+// Regra UnaryExpression → + Factor | - Factor | Factor
 void Parser::UnaryExpression() {
     if (lToken->type == PLUS_OPERATOR || lToken->type == MINUS_OPERATOR) {
         advance(); // Consome operador unario + ou -.
@@ -725,8 +667,7 @@ void Parser::UnaryExpression() {
     Factor(); // Fator (literal, variavel ou expressao entre parenteses).
 }
 
-// Producao: Factor → INTEGER_LITERAL | STRING_LITERAL | LValue | ( Expression )
-// Analisa fatores: literais, variaveis ou expressoes entre parenteses.
+// Regra Factor → INTEGER_LITERAL | STRING_LITERAL | LValue | ( Expression )
 void Parser::Factor() {
     if (lToken->type == INTEGER_LITERAL) {
         advance(); // Literal inteiro.
@@ -753,10 +694,8 @@ void Parser::Factor() {
 *
 ***********************************************************/
 
-// Producao: ArgListOpt → ArgList | ε
-// Analisa zero ou mais argumentos em uma chamada de funcao.
+// Regra ArgListOpt → ArgList | ε
 void Parser::ArgListOpt() {
-    // Verifica se ha algum argumento (comeca com expressao).
     if (lToken->type == ID || lToken->type == INTEGER_LITERAL || 
         lToken->type == STRING_LITERAL || lToken->type == PLUS_OPERATOR || 
         lToken->type == MINUS_OPERATOR || lToken->type == LEFT_BRACKET) {
@@ -764,12 +703,10 @@ void Parser::ArgListOpt() {
     }
 }
 
-// Producao: ArgList → ArgList , Expression | Expression
-// Analisa um ou mais argumentos separados por virgula.
+// Regra ArgList → ArgList , Expression | Expression
 void Parser::ArgList() {
     Expression(); // Primeiro argumento.
     
-    // Analisa argumentos adicionais separados por virgula.
     while (lToken->type == COMMA) {
         advance(); // Consome a virgula.
         Expression(); // Proximo argumento.
@@ -815,12 +752,10 @@ void Parser::error(string str) {
 *
 ***********************************************************/
 
-// Cria um novo escopo (tabela de símbolos filha).
 void Parser::enterScope() {
     currentScope = new SymbolTable(currentScope);
 }
 
-// Retorna ao escopo pai.
 void Parser::exitScope() {
     if (currentScope->getParent() != nullptr) {
         currentScope = currentScope->getParent();
@@ -862,6 +797,7 @@ void Parser::declareClass(string className, string parentClass) {
 
 // Declara uma variável na tabela de símbolos do escopo atual.
 void Parser::declareVariable(string varName, string varType, bool isArray) {
+    
     // Verifica se já existe no escopo ATUAL (não nos pais).
     if (currentScope->symbols.find(varName) != currentScope->symbols.end()) {
         STEntry* existing = currentScope->symbols[varName];
@@ -888,7 +824,6 @@ void Parser::declareVariable(string varName, string varType, bool isArray) {
 
 // Declara um método na tabela de símbolos.
 void Parser::declareMethod(string methodName, string returnType, bool isArray) {
-    // Verifica se já existe no escopo atual.
     if (currentScope->symbols.find(methodName) != currentScope->symbols.end()) {
         STEntry* existing = currentScope->symbols[methodName];
         semanticError("Metodo '" + methodName + "' ja foi declarado na linha " + to_string(existing->line));
@@ -912,7 +847,6 @@ void Parser::declareMethod(string methodName, string returnType, bool isArray) {
     cout << "' declarado na linha " << scanner->getLine() << endl;
 }
 
-// Verifica se uma variável foi declarada antes de ser usada.
 void Parser::checkVariableDeclared(string varName) {
     STEntry* entry = currentScope->get(varName);
     
@@ -928,7 +862,6 @@ void Parser::checkVariableDeclared(string varName) {
          << " (declarada na linha " << entry->line << ")" << endl;
 }
 
-// Verifica se uma classe foi declarada.
 void Parser::checkClassDeclared(string className) {
     STEntry* entry = symbolTable->get(className);
     

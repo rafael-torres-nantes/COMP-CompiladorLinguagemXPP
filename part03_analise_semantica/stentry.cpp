@@ -11,7 +11,6 @@ STEntry::STEntry() {
     line = 0;
 }
 
-// Construtor que inicializa uma entrada de símbolo com um token fornecido.
 // O símbolo não é marcado como reservado por padrão.
 STEntry::STEntry(Token* tok) {
     token = tok;
