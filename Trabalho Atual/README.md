@@ -1,372 +1,527 @@
 # Compilador X++ - Análise Léxica, Sintática e Semântica
 
-## 👨‍💻 Projeto desenvolvido por: [Rafael Torres Nantes](https://github.com/rafael-torres-nantes) e [Sarah Baraldi](https://github.com/mbaraldi-sarah).
+## 👨‍💻 Projeto desenvolvido por: [Rafael Torres Nantes](https://github.com/rafael-torres-nantes) e [Sarah Merigue Baraldi](https://github.com/mbaraldi-sarah).
 
 ## Índice
 
-* [📚 Sobre o Projeto](#-sobre-o-projeto)
-* [🛠️ Tecnologias Utilizadas](#%EF%B8%8F-tecnologias-utilizadas)
-* [📂 Estrutura do Projeto](#-estrutura-do-projeto)
-* [🖥️ Funcionalidades Implementadas](#%EF%B8%8F-funcionalidades-implementadas)
-   * [🔍 Etapa 1 - Análise Léxica](#-etapa-1---análise-léxica)
-   * [📋 Etapa 2 - Análise Sintática](#-etapa-2---análise-sintática)
-   * [🧮 Etapa 3 - Análise Semântica](#-etapa-3---análise-semântica)
-* [📌 Como Executar](#-como-executar)
-* [🧪 Testes](#-testes)
-* [📝 Mensagens de Erro](#-mensagens-de-erro)
+* [📚 Contextualização do Projeto](#-contextualização-do-projeto)
+* [🛠️ Tecnologias/Ferramentas utilizadas](#%EF%B8%8F-tecnologiasferramentas-utilizadas)
+* [🖥️ Funcionamento do sistema](#%EF%B8%8F-funcionamento-do-sistema)
+   * [🔍 Etapa 1 - Analisador Léxico](#-etapa-1---analisador-léxico)
+   * [📋 Etapa 2 - Analisador Sintático](#-etapa-2---analisador-sintático)
+   * [🧮 Etapa 3 - Tabela de Símbolos e Análise Semântica](#-etapa-3---tabela-de-símbolos-e-análise-semântica)
+* [📌 Como executar o projeto](#-como-executar-o-projeto)
 
-## 📚 Sobre o Projeto
+## 📚 Contextualização do Projeto
 
-Este projeto implementa um **compilador completo front-end** para a linguagem **X++**, uma linguagem orientada a objetos simplificada inspirada em Java. O compilador realiza:
+O projeto consiste em um compilador completo capaz de analisar o léxico, a sintaxe e a semântica de um código na linguagem fictícia X++, uma linguagem orientada a objetos simplificada baseada em Java. O programa foi desenvolvido utilizando a linguagem C++ e implementa todas as fases de um compilador front-end.
 
-- ✅ **Análise Léxica**: Reconhecimento de tokens (palavras reservadas, identificadores, operadores, etc.)
-- ✅ **Análise Sintática**: Verificação da estrutura gramatical do código
-- ✅ **Análise Semântica**: Validação de tipos, escopos, declarações e uso de identificadores
-- ✅ **Tratamento de Erros**: Mensagens claras no estilo g++/gcc
+## 🛠️ Tecnologias/Ferramentas utilizadas
 
-O compilador foi desenvolvido em **C++** e processa arquivos `.xpp`, identificando e reportando erros léxicos, sintáticos e semânticos de forma clara e precisa.
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Linguagem**: C++ (C++11 ou superior)
-- **Compilador**: g++ (MinGW/GCC)
-- **IDE**: Visual Studio Code
-- **Versionamento**: Git/GitHub
-- **Sistema Operacional**: Windows/Linux/Mac
-
-## 📂 Estrutura do Projeto
-
-```
-part03_analise_semantica/
-├── principal.cpp          # Arquivo principal (main)
-├── scanner.h/cpp         # Analisador léxico
-├── parser.h/cpp          # Analisador sintático
-├── token.h               # Definição de tokens
-├── stentry.h/cpp         # Entrada da tabela de símbolos
-├── symboltable.h/cpp     # Tabela de símbolos
-├── superheader.h         # Header unificado
-├── run_tests.ps1         # Script de testes automatizados
-└── tests/                # Casos de teste
-    ├── test_success.xpp
-    ├── test_erro_lexico.xpp
-    ├── test_erro_sintaxe.xpp
-    └── test_erro_semantico*.xpp
-```
+[<img src="https://img.shields.io/badge/Visual_Studio_Code-007ACC?">](https://code.visualstudio.com/)
+[<img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=violet">](https://github.com/)
+[<img src="https://img.shields.io/badge/-C++-blue?logo=cplusplus">](https://isocpp.org/)
 
 
-## 🖥️ Funcionalidades Implementadas
+## 🖥️ Funcionamento do sistema
 
-### 🔍 Etapa 1 - Análise Léxica
+### 🔍 Etapa 1 - Analisador Léxico
 
-O analisador léxico (`scanner.cpp`) implementa uma **máquina de estados finita** que reconhece e classifica os tokens da linguagem X++.
+Nessa primeira etapa, foi implementada a Análise Léxica nos arquivos `scanner.h` e `scanner.cpp`. Onde no primeiro está declarada a classe _Scanner_ e no segundo o seu funcionamento. A implementação é como uma máquina de estados onde os tokens são verificados.
 
-#### Tokens Reconhecidos:
+Além disso, o arquivo `token.h` contém a classe _Token_ onde estão definidos os tokens (_TokenTypes_) da linguagem. A seguir, estão apresentadas as **definições regulares dos tokens**, nas quais os símbolos terminais estão destacados em **negrito**:
 
-| Categoria | Tokens |
-|-----------|--------|
-| **Palavras Reservadas** | `class`, `extends`, `int`, `string`, `break`, `print`, `read`, `return`, `super`, `if`, `else`, `for`, `new`, `constructor` |
-| **Identificadores** | Sequências de letras, dígitos e `_` (começando por letra ou `_`) |
-| **Literais** | Inteiros: `123`, `0`, `999` <br> Strings: `"texto"` |
-| **Operadores Aritméticos** | `+`, `-`, `*`, `/`, `%` |
-| **Operadores Relacionais** | `==`, `!=`, `<`, `>`, `<=`, `>=` |
-| **Operador de Atribuição** | `=` |
-| **Separadores** | `(`, `)`, `{`, `}`, `[`, `]`, `,`, `;`, `.` |
-| **Comentários** | Linha: `// comentário` <br> Bloco: `/* comentário */` |
+1. _letter_ → **[a-zA-Z_]**
+2. _digit_ → **[0-9]**
+3. _ID_ → _letter_ (_letter_ | _digit_)**∗**
+4. _INTEGER_LITERAL_ → _digit_**+**
+5. _STRING_LITERAL_ → **"** (_ch_)**∗** **"**, onde _ch_ é qualquer caractere ASCII imprimível exceto aspas duplas e **\n**
+6. _Operadores_ → **+** | **-** | **∗** | **/** | **%** | **=** | **==** | **!=** | **<=** | **<** | **>=** | **>**
+7. _Separadores_ → **(** | **)** | **{** | **}** | **[** | **]** | **,** | **;** | **.**
+8. _Comentários_ devem ser **ignorados**. Comentário de linha é iniciado por **//** e encerrado por nova linha. Comentário em bloco é delimitado por **/\*** e **\*/** sem aninhamento.
+9. _Espaços em branco_ devem ser **ignorados**.
+10. _Palavras Reservadas_: **class**, **extends**, **int**, **string**, **break**, **print**, **read**, **return**, **super**, **if**, **else**, **for**, **new**, **constructor**
 
-#### Características:
+#### Um pouco da implementação...
 
-- ✅ Ignora espaços em branco e tabulações
-- ✅ Conta linhas corretamente para relatório de erros
-- ✅ Detecta strings não terminadas
-- ✅ Identifica caracteres inválidos
-- ✅ Diferencia palavras reservadas de identificadores usando tabela de símbolos
+`scanner.h` - Declaração da classe _Scanner_.
+```h
+#include "superheader.h"
 
-### 📋 Etapa 2 - Análise Sintática
-
-O analisador sintático (`parser.cpp`) implementa uma **análise descendente recursiva (top-down)** que verifica se o código segue a gramática da linguagem X++.
-
-#### Gramática da Linguagem X++:
-
-A gramática completa está implementada com **41 produções**, incluindo:
-
-| Não-Terminal | Produções |
-|--------------|-----------|
-| **Program** | ClassList |
-| **ClassList** | ClassDecl ClassList \| ClassDecl |
-| **ClassDecl** | `class ID` ClassBody \| `class ID extends ID` ClassBody |
-| **ClassBody** | `{` VarDeclListOpt ConstructDeclListOpt MethodDeclListOpt `}` |
-| **VarDecl** | Type `ID` VarDeclOpt `;` \| Type `[]` `ID` VarDeclOpt `;` |
-| **Type** | `int` \| `string` \| `ID` |
-| **MethodDecl** | Type `ID` MethodBody \| Type `[]` `ID` MethodBody |
-| **Statement** | VarDecl \| AtribStat `;` \| PrintStat `;` \| ReadStat `;` \| ReturnStat `;` \| SuperStat `;` \| IfStat \| ForStat \| `break ;` \| `;` |
-| **Expression** | NumExpression \| NumExpression RelOp NumExpression |
-| **LValue** | `ID` LValueComp |
-
-#### Estruturas Suportadas:
-
-- ✅ **Classes e Herança**: `class A extends B { ... }`
-- ✅ **Construtores**: `constructor(params) { ... }` com suporte a `super()`
-- ✅ **Métodos**: Retorno de tipos primitivos ou objetos, incluindo arrays
-- ✅ **Atributos**: Variáveis e arrays como membros de classe
-- ✅ **Comandos Condicionais**: `if (expr) { ... } else { ... }`
-- ✅ **Laços**: `for (init; cond; incr) { ... }` com suporte a `break`
-- ✅ **Alocação**: `new Classe(args)` e `Tipo[expr]`
-- ✅ **Acesso a Membros**: `obj.atributo`, `obj.metodo()`, `array[i]`
-- ✅ **Operadores**: Aritméticos (`+`, `-`, `*`, `/`, `%`) e relacionais (`==`, `!=`, `<`, `>`, `<=`, `>=`)
-
-### 🧮 Etapa 3 - Análise Semântica
-
-O analisador semântico implementa uma **tabela de símbolos hierárquica** com controle de escopos e realiza verificações semânticas completas.
-
-#### Tabela de Símbolos:
-
-A tabela de símbolos (`symboltable.cpp`) armazena:
-- **Palavras reservadas** (inseridas na inicialização)
-- **Classes declaradas** (escopo global)
-- **Variáveis** (escopos aninhados)
-- **Métodos e construtores**
-- **Parâmetros**
-
-Cada entrada (`STEntry`) contém:
-```cpp
-- Token* token        // Token associado
-- SymbolKind kind     // KEYWORD, CLASS_NAME, VARIABLE, METHOD, PARAMETER
-- string type         // Tipo (int, string, nome da classe)
-- bool isArray        // Se é array
-- int line            // Linha de declaração
-- string parentClass  // Classe pai (para classes)
-- bool reserved       // Se é palavra reservada
-```
-
-#### Gerenciamento de Escopos:
-
-O compilador implementa **escopos hierárquicos**:
-```
-Global (Tabela Principal)
-  ├─ Classe A
-  │   ├─ Atributos de A
-  │   ├─ Construtor
-  │   │   └─ Parâmetros e variáveis locais
-  │   └─ Métodos de A
-  │       └─ Parâmetros e variáveis locais
-  └─ Classe B
-      └─ ...
-```
-
-- `enterScope()`: Cria novo escopo filho
-- `exitScope()`: Retorna ao escopo pai
-- `get(nome)`: Busca símbolo no escopo atual e pais (busca hierárquica)
-
-#### Verificações Semânticas Implementadas:
-
-| Verificação | Descrição |
-|------------|-----------|
-| ✅ **Declaração de Variáveis** | Verifica se variável foi declarada antes do uso |
-| ✅ **Redeclaração** | Impede redeclaração no mesmo escopo |
-| ✅ **Declaração de Classes** | Verifica se classe existe ao usar como tipo |
-| ✅ **Herança Válida** | Verifica se classe pai existe no `extends` |
-| ✅ **Palavras Reservadas** | Impede uso de palavras reservadas como identificadores |
-| ✅ **Escopo de Variáveis** | Variáveis de blocos internos não vazam para fora |
-| ✅ **Tipos** | Valida tipos em declarações de variáveis e métodos |
-
-#### Exemplo de Análise Semântica:
-
-**Código Válido:**
-```cpp
-class Pessoa {
-    int idade;
+class Scanner 
+{
+    private: 
+        string input;   
+        int pos;        
+        int line;       
+        SymbolTable* symbolTable; 
     
-    constructor(int i) {
-        idade = i;  // ✓ 'idade' declarada na classe
-    }
-}
+    public:
+        // Construtor
+        Scanner(string, SymbolTable*);    // Arquivo de entrada e tabela de simbolos
+
+        int getLine();    
+    
+        // Metodo que retorna o proximo token da entrada
+        Token* nextToken();        
+    
+        // Metodo para manipular erros
+        void lexicalError();
+};
 ```
 
-**Código com Erro:**
+`scanner.cpp` - Funcionamento da classe _Scanner_.
 ```cpp
-class Teste {
-    constructor() {
-        resultado = 10;  // ✗ 'resultado' não foi declarado
+// Método que retorna o próximo token da entrada
+// Método que retorna o próximo token da entrada
+Token* Scanner::nextToken()
+{
+    Token* token;
+    int state = 0;
+    string lexeme;
+
+    while (true)
+    {
+        switch (state)
+        {
+        case 0:
+            if (input[pos] == '\0')
+            {
+                token = new Token(END_OF_FILE);
+                return token;
+            }
+            else if (input[pos] == '<')
+                state = 5;
+            else if (input[pos] == '=')
+                state = 13;
+            else if (input[pos] == '>')
+                state = 6;
+            else if (input[pos] == '*')
+                state = 7;
+            else if (input[pos] == '-')
+                state = 8;
+            else if (input[pos] == '+')
+[...]
+
+case 3: // Dígito
+    if (isdigit(input[pos])){
+        lexeme += input[pos];
+        pos++;
+    }
+    else
+        state = 4;
+     break;
+
+case 4: // Integer Literal
+    if (isalpha(input[pos]) || input[pos] == '_') {
+        lexicalError();
+    }
+    token = new Token(INTEGER_LITERAL, lexeme);
+    return token;
+
+case 5: // <
+    if (input[pos] == '=') {
+        pos++;
+        token = new Token(LESS_OR_EQUAL_THAN);
+        return token;
+    }
+    else {
+        token = new Token(LESS_THAN);
+        return token;
+    }
+[...]
+```
+
+`token.h` - Classe _Token_ e TokenTypes.
+```h
+enum TokenType 
+{
+    UNDEFINED,               // 0  - Token indefinido
+    ID,                      // 1  - Identificador (ex: nomes de variáveis)
+    INTEGER_LITERAL,         // 2  - Literal inteiro (dígito+)
+    STRING_LITERAL,          // 3  - Literal string delimitado por " e "
+
+    OP,                      // 4  - Operador
+
+[...]
+
+class Token {
+    public: 
+        int type;       // Tipo do token
+        int attribute;  
+        string lexeme;  // Texto reconhecido (lexema)
+    
+        // Construtores para diferentes tipos de tokens
+
+        // Apenas tipo
+        Token(int type) // Exemplo: if, else.
+        {
+            this->type = type;
+            attribute = UNDEFINED;
+            lexeme = "";
+        }
+
+        // Tipo e lexema
+        Token(int type, string lexeme)
+        {
+            this->type = type;
+            attribute = UNDEFINED;
+            this->lexeme = lexeme;
+        }
+```
+
+### 📋 Etapa 2 - Analisador Sintático
+
+O analisador sintático consiste em verificar se o código está seguindo as **regras de gramática** da linguagem X++. Ele foi implementado nos arquivos `parser.h` e `parser.cpp`, onde no primeiro está definida a classe _Parser_ e no segundo, suas funções.
+
+Na tabela a seguir está descrita a gramática da linguagem X++. Os tokens da linguagem são representados em **negrito** e os não-terminais em _itálico_:
+
+| Produção | Corpo |
+|----------|-------|
+| _Program_ → | _ClassList_ |
+| _ClassList_ → | _ClassDecl_ _ClassList_ \| _ClassDecl_ |
+| _ClassDecl_ → | **class ID** _ClassBody_ \| **class ID extends ID** _ClassBody_ |
+| _ClassBody_ → | **{** _VarDeclListOpt_ _ConstructDeclListOpt_ _MethodDeclListOpt_ **}** |
+| _VarDeclListOpt_ → | _VarDeclList_ \| _ε_ |
+| _VarDeclList_ → | _VarDeclList_ _VarDecl_ \| _VarDecl_ |
+| _VarDecl_ → | _Type_ **ID** _VarDeclOpt_ **;** \| _Type_ **[ ] ID** _VarDeclOpt_ **;** |
+| _VarDeclOpt_ → | **, ID** _VarDeclOpt_ \| _ε_ |
+| _Type_ → | **int** \| **string** \| **ID** |
+| _ConstructDeclListOpt_ → | _ConstructDeclList_ \| _ε_ |
+| _ConstructDeclList_ → | _ConstructDeclList_ _ConstructDecl_ \| _ConstructDecl_ |
+| _ConstructDecl_ → | **constructor** _MethodBody_ |
+| _MethodDeclListOpt_ → | _MethodDeclList_ \| _ε_ |
+| _MethodDeclList_ → | _MethodDeclList_ _MethodDecl_ \| _MethodDecl_ |
+| _MethodDecl_ → | _Type_ **ID** _MethodBody_ \| _Type_ **[ ] ID** _MethodBody_ |
+| _MethodBody_ → | **( **_ParamListOpt_** ) {** _StatementsOpt_ **}** |
+| _ParamListOpt_ → | _ParamList_ \| _ε_ |
+| _ParamList_ → | _ParamList_ **, **_Param_ \| _Param_ |
+| _Param_ → | _Type_ **ID** \| _Type_ **[ ] ID** |
+| _StatementsOpt_ → | _Statements_ \| _ε_ |
+| _Statements_ → | _Statements_ _Statement_ \| _Statement_ |
+| _Statement_ → | _VarDeclList_ \| _AtribStat_ **;** \| _PrintStat_ **;** \| _ReadStat_ **;** \| _ReturnStat_ **;** \| _SuperStat_ **;** \| _IfStat_ \| _ForStat_ \| **break ;** \| **;** |
+| _AtribStat_ → | _LValue_ **=** _Expression_ \| _LValue_ **=** _AllocExpression_ |
+| _PrintStat_ → | **print** _Expression_ |
+| _ReadStat_ → | **read** _LValue_ |
+| _ReturnStat_ → | **return** _Expression_ |
+| _SuperStat_ → | **super (** _ArgListOpt_ **)** |
+| _IfStat_ → | **if (** _Expression_ **) {** _Statements_ **}** \| **if (** _Expression_ **) {** _Statements_ **} else {** _Statements_ **}** |
+| _ForStat_ → | **for (** _AtribStatOpt_ **;** _ExpressionOpt_ **;** _AtribStatOpt_ **) {** _Statements_ **}** |
+| _LValue_ → | **ID** _LValueComp_ |
+| _LValueComp_ → | **. ID** _LValueComp_ \| **. ID [** _Expression_ **]** _LValueComp_ \| **. ID (** _ArgListOpt_ **)** _LValueComp_ \| **[** _Expression_ **]** _LValueComp_ \| _ε_ |
+| _Expression_ → | _NumExpression_ \| _NumExpression_ _RelOp_ _NumExpression_ |
+| _AllocExpression_ → | **new ID (** _ArgListOpt_ **)** \| _Type_ **[** _Expression_ **]** |
+| _NumExpression_ → | _Term_ **+** _Term_ \| _Term_ **-** _Term_ \| _Term_ |
+| _Term_ → | _UnaryExpression_ **\*** _UnaryExpression_ \| _UnaryExpression_ **/** _UnaryExpression_ \| _UnaryExpression_ **%** _UnaryExpression_ \| _UnaryExpression_ |
+| _UnaryExpression_ → | **+** _Factor_ \| **-** _Factor_ \| _Factor_ |
+| _Factor_ → | **INTEGER_LITERAL** \| **STRING_LITERAL** \| _LValue_ \| **(** _Expression_ **)** |
+| _ArgListOpt_ → | _ArgList_ \| _ε_ |
+| _ArgList_ → | _ArgList_ **,** _Expression_ \| _Expression_ |
+
+A gramática foi implementada usando análise descendente recursiva (top-down parsing), onde cada não-terminal possui um método correspondente no parser.
+
+#### Um pouco da implementação...
+
+`parser.h` - Definição da Classe _Parser_
+```h
+class Parser {
+public:
+    // Construtor que inicializa o scanner com o arquivo de entrada e a tabela de símbolos
+    Parser(string input, SymbolTable* st);
+
+    // Método para iniciar o processo de parsing
+    void run();
+
+private:
+    Scanner* scanner;         // Objeto Scanner para tokenizar a entrada
+    Token* lToken;            // Token atual
+    SymbolTable* symbolTable; // Tabela de símbolos para análise semântica
+    SymbolTable* currentScope; // Escopo atual (para escopos aninhados)
+    string currentClass;      // Nome da classe atual sendo processada
+    string currentType;       // Tipo atual sendo processado
+    bool currentIsArray;      // Se o tipo atual é array
+
+    // Avança para o próximo token
+    void advance();
+
+    // Verifica se o token atual corresponde ao tipo esperado e avança
+    void match(int t);
+
+    // Métodos das produções gramaticais para a linguagem X++
+    void Program();              // Program → ClassList
+[...]
+```
+
+`parser.cpp` - Implementação das funções da Classe _Parser_.
+```cpp
+[...]
+void Parser::run() {
+    try {
+        Program();
+        cout << "\n[SUCESSO] Compilacao finalizada com sucesso." << endl;
+    } catch (const runtime_error& e) {
+        cout << e.what() << endl;
     }
 }
+
+void Parser::advance() {
+    lToken = scanner->nextToken();
+[...]
+// Regra 1: Program → ClassList
+void Parser::Program() {
+    ClassList();
+    match(END_OF_FILE);
+}
+
+// Regra 2: ClassList → ClassDecl ClassList | ClassDecl
+void Parser::ClassList() {
+    ClassDecl();
+    if (lToken->type == CLASS) {
+        ClassList();
+    }
+}
+[...]
 ```
-**Saída:**
+
+### 🧮 Etapa 3 - Tabela de Símbolos e Análise Semântica
+
+Implementamos uma tabela de símbolos para **guardar** tanto as **palavras reservadas** quanto **variáveis** e **classes** criadas pelo usuário. Sua implementação se deu principalmente nos arquivos `stentry.h`, `stentry.cpp`, `symboltable.h`, `symboltable.cpp`, além de alterações nos arquivos da análise sintática.
+
+**Além do requisitado**, foi implementada **análise semântica completa** como bonificação, incluindo:
+- ✅ Verificação de declaração e uso de variáveis
+- ✅ Verificação de declaração de classes
+- ✅ Verificação de herança (classe pai existe)
+- ✅ Controle de escopos hierárquicos (global → classe → método → bloco)
+- ✅ Detecção de redeclarações
+- ✅ Validação de tipos
+
+#### Um pouco da implementação...
+
+`stentry.h` - Declaração da classe _STEntry_.
+```h
+class STEntry {
+public:
+    Token* token;           // Ponteiro para o token associado.
+    bool reserved;          // Indica se o símbolo é uma palavra reservada.
+    SymbolKind kind;        // Tipo do símbolo (classe, variável, método, etc.)
+    string type;            // Tipo do símbolo (int, string, nome de classe)
+    bool isArray;           // Indica se é um array
+    string parentClass;     // Para classes: classe pai (se houver herança)
+    int line;               // Linha onde foi declarado
+
+    // Construtores para criar uma entrada de símbolo com diferentes configurações.
+    STEntry(); 
+    STEntry(Token*);   
+    STEntry(Token*, bool);
+    STEntry(Token*, SymbolKind, string type = "", bool isArray = false, int line = 0);
+};
 ```
-erro: linha 3: 'resultado' nao foi declarado neste escopo
+
+`stentry.cpp` - Construtores da classe _STEntry_.
+```cpp
+// Construtor padrão que inicializa uma entrada de símbolo sem associar um token.
+STEntry::STEntry() {
+    token = nullptr;
+    reserved = false;
+    kind = KEYWORD;
+    type = "";
+    isArray = false;
+    parentClass = "";
+    line = 0;
+}
+
+// O símbolo não é marcado como reservado por padrão.
+STEntry::STEntry(Token* tok) {
+    token = tok;
+    reserved = false;
+    kind = VARIABLE;
+    type = "";
+    isArray = false;
+    parentClass = "";
+    line = 0;
+}
+
+// Construtor que inicializa uma entrada de símbolo com um token e uma flag de reserva.
+STEntry::STEntry(Token* tok, bool res) {
+    token = tok;
+    reserved = res;
+    kind = res ? KEYWORD : VARIABLE;
+    type = "";
+    isArray = false;
+    parentClass = "";
+    line = 0;
+}
 ```
 
-## 📌 Como Executar
+`symboltable.h` - Declaração da classe _SymbolTable_.
+```h
+class SymbolTable {
+public:
+    SymbolTable* parent; // Referência à tabela pai (escopo imediatamente anterior).
+    std::map<std::string, STEntry*> symbols; // Armazena os símbolos do escopo atual.
 
-### Pré-requisitos
+    // Construtores para criar tabelas de símbolos, com ou sem um escopo pai.
+    SymbolTable();
+    SymbolTable(SymbolTable*);
 
-- **g++** (MinGW no Windows, GCC no Linux/Mac)
-- Sistema operacional: Windows, Linux ou Mac
+    // Funções para manipulação da tabela de símbolos.
+    bool add(STEntry*);          // Adiciona um novo símbolo.
+    bool remove(std::string);    // Remove um símbolo.
+    void clear();                // Limpa todos os símbolos.
+    bool isEmpty();              // Verifica se a tabela está vazia.
+    STEntry* get(std::string);   // Busca um símbolo pelo nome (lexema).
+    SymbolTable* getParent();    // Retorna a tabela pai (escopo anterior).
+    SymbolTable* initializeKeywords();        // Inicializa a tabela de símbolos com palavras-chave.
+};
+```
 
-### Compilação
+`symboltable.cpp` - Funcionalidades da classe _SymbolTable_.
+```cpp
+// Construtor padrão que inicializa uma nova tabela de símbolos sem um escopo pai.
+SymbolTable::SymbolTable() {
+    parent = nullptr;
+}
 
-Navegue até a pasta do projeto:
+// O escopo pai é usado para busca hierárquica de símbolos em escopos mais amplos.
+SymbolTable::SymbolTable(SymbolTable* p) {
+    parent = p;
+}
+
+// Tenta adicionar um novo símbolo à tabela atual.
+// - Se já houver um símbolo com o mesmo lexema, a função retorna `false` sem adicionar.
+// - Caso contrário, o símbolo é inserido e a função retorna `true`.
+bool SymbolTable::add(STEntry* t) {
+    if (symbols.find(t->token->lexeme) != symbols.end())
+        return false; // Símbolo já existe.
+    
+    symbols.insert({t->token->lexeme, t});
+    return true;
+}
+[...]
+```
+
+**Análise Semântica no Parser:**
+```cpp
+[...]
+// Declara uma classe na tabela de símbolos.
+void Parser::declareClass(string className, string parentClass) {
+    STEntry* existing = symbolTable->get(className);
+    
+    // Verifica se já existe uma classe com esse nome.
+    if (existing != nullptr && existing->kind == CLASS_NAME) {
+        semanticError("Classe '" + className + "' ja foi declarada na linha " + to_string(existing->line));
+    }
+    
+    // Se há classe pai, verifica se ela existe.
+    if (!parentClass.empty()) {
+        STEntry* parent = symbolTable->get(parentClass);
+        if (parent == nullptr || parent->kind != CLASS_NAME) {
+            semanticError("Classe pai '" + parentClass + "' nao foi declarada");
+        }
+    }
+    
+    // Cria entrada para a classe.
+    Token* classToken = new Token(ID, className);
+    STEntry* classEntry = new STEntry(classToken, CLASS_NAME, "class", false, scanner->getLine());
+    classEntry->parentClass = parentClass;
+    
+    if (!symbolTable->add(classEntry)) {
+        semanticError("Erro ao adicionar classe '" + className + "' na tabela de simbolos");
+    }
+}
+[...]
+void Parser::checkVariableDeclared(string varName) {
+    STEntry* entry = currentScope->get(varName);
+    
+    if (entry == nullptr) {
+        semanticError("Variavel '" + varName + "' nao foi declarada");
+    }
+    
+    if (entry->reserved) {
+        semanticError("'" + varName + "' e uma palavra reservada e nao pode ser usada como variavel");
+    }
+    
+    // cout << "[SEMANTICO] Variavel '" << varName << "' usada na linha " << scanner->getLine() 
+    //     << " (declarada na linha " << entry->line << ")" << endl;
+}
+
+void Parser::checkClassDeclared(string className) {
+    STEntry* entry = symbolTable->get(className);
+    
+    if (entry == nullptr || entry->kind != CLASS_NAME) {
+        semanticError("Classe '" + className + "' nao foi declarada");
+    }
+}
+
+// Lança um erro semântico com mensagem detalhada.
+void Parser::semanticError(string message) {
+    cout << "\n[ERRO SEMANTICO] Linha " << scanner->getLine() << ": " << message << endl;
+    exit(EXIT_FAILURE);
+}
+```
+
+## 📌 Como executar o projeto
+
+### Acesse a pasta do projeto no terminal:
+
 ```bash
 cd part03_analise_semantica/
 ```
 
-Compile o compilador:
+### Compile o código com o seguinte comando:
+
 ```bash
-g++ -o xpp_compiler principal.cpp scanner.cpp parser.cpp stentry.cpp symboltable.cpp
+g++ -o xpp_compiler *.cpp
 ```
 
-### Execução
-
-**Windows (PowerShell):**
-```powershell
-.\xpp_compiler.exe arquivo.xpp
-```
+### Execute o programa com um arquivo de teste:
 
 **Linux/Mac:**
 ```bash
-./xpp_compiler arquivo.xpp
+./xpp_compiler tests/test_success.xpp
 ```
 
-### Exemplos de Uso
+**Windows (PowerShell):**
+```powershell
+.\xpp_compiler.exe tests\test_success.xpp
+```
 
-**Compilação bem-sucedida:**
+### Exemplos de execução:
+
+**Arquivo válido:**
 ```bash
 .\xpp_compiler.exe tests\test_success.xpp
 ```
 ```
-[SEMANTICO] Classe 'Pessoa' declarada na linha 4
-[SEMANTICO] Variavel 'idade' do tipo 'int' declarada na linha 5
-[SEMANTICO] Variavel 'nome' do tipo 'string' declarada na linha 6
-...
-Compilacao finalizada com sucesso.
+
+[SUCESSO] Compilacao finalizada com sucesso.
 ```
 
-**Arquivo com erro:**
+**Arquivo com erro léxico:**
+```bash
+.\xpp_compiler.exe tests\test_erro_lexico.xpp
+```
+```
+
+[ERRO LEXICO] Linha 7: caractere invalido '@'
+```
+
+**Arquivo com erro sintático:**
+```bash
+.\xpp_compiler.exe tests\test_erro_sintaxe.xpp
+```
+```
+
+[ERRO SINTATICO] Linha 8: esperava 'RIGHT_CURLY_BRACE' mas encontrou 'END_OF_FILE'
+```
+
+**Arquivo com erro semântico:**
 ```bash
 .\xpp_compiler.exe tests\test_erro_semantico1.xpp
 ```
 ```
-[SEMANTICO] Classe 'Teste' declarada na linha 3
-[SEMANTICO] Variavel 'valor' do tipo 'int' declarada na linha 4
-erro: linha 7: 'resultado' nao foi declarado neste escopo
-```
 
-## 🧪 Testes
-
-### Suite de Testes Automatizada
-
-Execute todos os testes de uma vez:
-```powershell
-.\run_tests.ps1
-```
-
-**Saída esperada:**
-```
-========================================
-  TESTES DO COMPILADOR X++
-========================================
-
-----------------------------------------
-TESTES DE SUCESSO
-----------------------------------------
-[1/12] Programa valido simples
-  Arquivo: test_success.xpp
-  PASSOU
-
-[2/12] Programa valido complexo
-  Arquivo: test_valid.xpp
-  PASSOU
-
-...
-
-========================================
-RESUMO DOS TESTES
-========================================
-Total de testes:  12
-Testes passados:  12
-Testes falhados:  0
-
-========================================
-  TODOS OS TESTES PASSARAM!
-========================================
-```
-
-### Casos de Teste Disponíveis
-
-| Arquivo | Descrição |
-|---------|-----------|
-| `test_success.xpp` | Programa válido simples |
-| `test_valid.xpp` | Programa válido com múltiplas classes |
-| `test_completo.xpp` | Teste completo da gramática |
-| `test_simple.xpp` | Teste de escopos e variáveis locais |
-| `test_erro_lexico.xpp` | Erro: caractere inválido `@` |
-| `test_erro_sintaxe.xpp` | Erro: chave não fechada |
-| `test_erro_semantico1.xpp` | Erro: variável não declarada |
-| `test_erro_semantico2.xpp` | Erro: redeclaração de variável |
-| `test_erro_semantico3.xpp` | Erro: classe não declarada |
-| `test_erro_semantico4.xpp` | Erro: redeclaração de classe |
-| `test_erro_semantico5.xpp` | Erro: herança inválida |
-
-## 📝 Mensagens de Erro
-
-O compilador emite mensagens de erro no estilo **g++/gcc**, claras e informativas:
-
-### Erro Léxico
-```
-erro lexico: linha 7: caractere invalido '@'
-```
-
-### Erro Sintático
-```
-erro: linha 11: esperava 'SEMICOLON' mas encontrou 'LEFT_BRACKET'
-```
-
-### Erros Semânticos
-
-**Variável não declarada:**
-```
-erro: linha 7: 'resultado' nao foi declarado neste escopo
-```
-
-**Redeclaração:**
-```
-erro: linha 5: redeclaracao de 'valor'
-nota: declaracao anterior na linha 4
-```
-
-**Classe não declarada:**
-```
-erro: linha 10: 'MinhaClasse' nao foi declarado como uma classe
-```
-
-**Herança inválida:**
-```
-erro: linha 8: 'ClassePai' nao foi declarado
-```
-
-### Compilação Bem-Sucedida
-```
-Compilacao finalizada com sucesso.
+[ERRO SEMANTICO] Linha 7: Variavel 'resultado' nao foi declarada
 ```
 
 ---
-
-## 🎯 Características Adicionais
-
-- ✅ Mensagens de erro estilo g++
-- ✅ Suporte completo a escopos aninhados
-- ✅ Análise semântica completa (além do requisitado)
-- ✅ Suite de testes automatizada
-- ✅ Tratamento robusto de erros
-- ✅ Código modular e bem documentado
-
----
-
-## 📚 Referências
-
-- Aho, A. V.; Lam, M. S.; Sethi, R.; Ullman, J. D. **Compilers: Principles, Techniques, and Tools** (2nd Edition)
-- Appel, A. W. **Modern Compiler Implementation in C/Java/ML**
-- Documentação do GCC/g++
-
----
-
-**Desenvolvido como projeto acadêmico de Compiladores**
