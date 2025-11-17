@@ -335,6 +335,6 @@ Token* Scanner::nextToken()
 // Função de erro léxico
 void Scanner::lexicalError()
 {
-    cout << "Lexical error at line " << line << endl;
+    cerr << "erro lexico: linha " << line << ": caractere invalido '" << input[pos] << "'" << endl;
     exit(1); // Finaliza o programa
 }
