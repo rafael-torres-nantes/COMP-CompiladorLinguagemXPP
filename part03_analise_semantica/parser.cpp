@@ -19,7 +19,7 @@ Parser::Parser(string input, SymbolTable* st) {
 void Parser::run() {
     try {
         Program();
-        cout << "Compilacao finalizada com sucesso." << endl;
+        cout << "\n[SUCESSO] Compilacao finalizada com sucesso." << endl;
     } catch (const runtime_error& e) {
         cout << e.what() << endl;
     }
@@ -33,7 +33,7 @@ void Parser::match(int t) {
     if (lToken->type == t) {
         advance();
     } else {
-        cerr << "erro: linha " << scanner->getLine() << ": esperava '" 
+        cout << "\n[ERRO SINTATICO] Linha " << scanner->getLine() << ": esperava '" 
              << Token::getTokenTypeName(t) << "' mas encontrou '" 
              << Token::getTokenTypeName(lToken->type) << "'" << endl;
         exit(EXIT_FAILURE);
@@ -77,8 +77,7 @@ void Parser::ClassDecl() {
     match(CLASS);
     
     if (lToken->type != ID) {
-        cerr << "erro: linha " << scanner->getLine() << ": nome da classe esperado apos 'class'" << endl;
-        exit(EXIT_FAILURE);
+        error("Nome da classe esperado");
     }
     string className = lToken->lexeme;
     currentClass = className;
@@ -88,8 +87,7 @@ void Parser::ClassDecl() {
     if (lToken->type == EXTENDS) {
         advance();
         if (lToken->type != ID) {
-            cerr << "erro: linha " << scanner->getLine() << ": nome da classe pai esperado apos 'extends'" << endl;
-            exit(EXIT_FAILURE);
+            error("Nome da classe pai esperado");
         }
         parentClass = lToken->lexeme;
         match(ID); // Espera o identificador da classe pai.
@@ -131,7 +129,7 @@ void Parser::ClassBody() {
 // Regra VarDeclListOpt → VarDeclList | ε
 // IMPORTANTE: Todas as variaveis devem ser declaradas ANTES dos metodos.
 void Parser::VarDeclListOpt() {
-    while (isType()) {
+    while (lToken->type == INT || lToken->type == STRING) {
         VarDecl();
     }
 }
@@ -149,8 +147,7 @@ void Parser::VarDecl() {
     }
     
     if (lToken->type != ID) {
-        cerr << "erro: linha " << scanner->getLine() << ": identificador esperado na declaracao de variavel" << endl;
-        exit(EXIT_FAILURE);
+        error("ID esperado na declaracao");
     }
     
     // ANÁLISE SEMÂNTICA: Declara a primeira variável.
@@ -169,8 +166,7 @@ void Parser::VarDeclOpt() {
         advance(); // Consome a virgula.
         
         if (lToken->type != ID) {
-            cerr << "erro: linha " << scanner->getLine() << ": identificador esperado apos ',' na declaracao de variaveis" << endl;
-            exit(EXIT_FAILURE);
+            error("ID esperado apos virgula na declaracao de variaveis");
         }
         
         // ANÁLISE SEMÂNTICA: Declara variável adicional com o mesmo tipo.
@@ -187,8 +183,7 @@ void Parser::Type() {
     if (lToken->type == INT || lToken->type == STRING || lToken->type == ID) {
         advance(); // Avanca se o tipo for valido.
     } else {
-        cerr << "erro: linha " << scanner->getLine() << ": tipo esperado ('int', 'string' ou identificador de classe)" << endl;
-        exit(EXIT_FAILURE);
+        error("Tipo esperado (int, string ou ID)");
     }
 }
 
@@ -217,8 +212,8 @@ void Parser::ConstructDeclList() {
 void Parser::ConstructDecl() {
     match(CONSTRUCTOR); // Espera a palavra reservada 'constructor'.
     
-    cout << "[SEMANTICO] Construtor declarado na classe '" << currentClass 
-         << "' na linha " << scanner->getLine() << endl;
+    // cout << "[SEMANTICO] Construtor declarado na classe '" << currentClass 
+    //     << "' na linha " << scanner->getLine() << endl;
     
     // Cria novo escopo para o construtor.
     enterScope();
@@ -260,8 +255,7 @@ void Parser::MethodDecl() {
     }
     
     if (lToken->type != ID) {
-        cerr << "erro: linha " << scanner->getLine() << ": identificador esperado para nome do metodo" << endl;
-        exit(EXIT_FAILURE);
+        error("Nome do metodo esperado");
     }
     string methodName = lToken->lexeme;
     
@@ -321,8 +315,7 @@ void Parser::Param() {
     }
     
     if (lToken->type != ID) {
-        cerr << "erro: linha " << scanner->getLine() << ": identificador esperado para nome do parametro" << endl;
-        exit(EXIT_FAILURE);
+        error("Nome do parametro esperado");
     }
     string paramName = lToken->lexeme;
     
@@ -331,13 +324,12 @@ void Parser::Param() {
     STEntry* paramEntry = new STEntry(paramToken, PARAMETER, currentType, currentIsArray, scanner->getLine());
     
     if (!currentScope->add(paramEntry)) {
-        cerr << "erro: linha " << scanner->getLine() << ": redeclaracao do parametro '" << paramName << "'" << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Parametro '" + paramName + "' ja foi declarado");
     }
     
-    cout << "[SEMANTICO] Parametro '" << paramName << "' do tipo '" << currentType;
-    if (currentIsArray) cout << "[]";
-    cout << "' declarado na linha " << scanner->getLine() << endl;
+    // cout << "[SEMANTICO] Parametro '" << paramName << "' do tipo '" << currentType;
+    // if (currentIsArray) cout << "[]";
+    // cout << "' declarado na linha " << scanner->getLine() << endl;
     
     match(ID); // Espera o identificador do parametro.
 }
@@ -403,8 +395,7 @@ void Parser::Statement() {
         advance(); // Comando vazio.
     }
     else {
-        cerr << "erro: linha " << scanner->getLine() << ": comando invalido" << endl;
-        exit(EXIT_FAILURE);
+        error("Statement esperado");
     }
 }
 
@@ -533,8 +524,7 @@ void Parser::ExpressionOpt() {
 // Regra LValue → ID LValueComp
 void Parser::LValue() {
     if (lToken->type != ID) {
-        cerr << "erro: linha " << scanner->getLine() << ": identificador esperado" << endl;
-        exit(EXIT_FAILURE);
+        error("Identificador esperado");
     }
     
     string varName = lToken->lexeme;
@@ -605,8 +595,7 @@ void Parser::AllocExpression() {
         advance(); // Consome 'new'.
         
         if (lToken->type != ID) {
-            cerr << "erro: linha " << scanner->getLine() << ": nome da classe esperado apos 'new'" << endl;
-            exit(EXIT_FAILURE);
+            error("Nome da classe esperado apos 'new'");
         }
         
         string className = lToken->lexeme;
@@ -614,8 +603,8 @@ void Parser::AllocExpression() {
         // ANÁLISE SEMÂNTICA: Verifica se a classe foi declarada.
         checkClassDeclared(className);
         
-        cout << "[SEMANTICO] Alocacao de objeto da classe '" << className 
-             << "' na linha " << scanner->getLine() << endl;
+        // cout << "[SEMANTICO] Alocacao de objeto da classe '" << className 
+        //     << "' na linha " << scanner->getLine() << endl;
         
         match(ID); // Nome da classe.
         match(LEFT_BRACKET); // Abre argumentos do construtor.
@@ -636,12 +625,11 @@ void Parser::AllocExpression() {
         Expression(); // Tamanho do array.
         match(RIGHT_SQUARE_BRACKET); // Fecha tamanho do array.
         
-        cout << "[SEMANTICO] Alocacao de array do tipo '" << arrayType 
-             << "' na linha " << scanner->getLine() << endl;
+        // cout << "[SEMANTICO] Alocacao de array do tipo '" << arrayType 
+        //     << "' na linha " << scanner->getLine() << endl;
     }
     else {
-        cerr << "erro: linha " << scanner->getLine() << ": expressao de alocacao invalida (esperado 'new' ou tipo com '[']" << endl;
-        exit(EXIT_FAILURE);
+        error("AllocExpression esperada (new ID(...) ou Type[...])");
     }
 }
 
@@ -697,8 +685,7 @@ void Parser::Factor() {
         match(RIGHT_BRACKET); // Fecha expressao entre parenteses.
     }
     else {
-        cerr << "erro: linha " << scanner->getLine() << ": expressao invalida (esperado literal, identificador ou '(')" << endl;
-        exit(EXIT_FAILURE);
+        error("Factor esperado (literal, LValue ou expressao entre parenteses)");
     }
 }
 
@@ -755,7 +742,7 @@ bool Parser::isStatement() {
 
 // Funcao para exibir mensagens de erro detalhadas.
 void Parser::error(string str) {
-    cerr << "erro: linha " << scanner->getLine() << ": " << str << endl;
+    cout << "\n[ERRO SINTATICO] Linha " << scanner->getLine() << ": " << str << endl;
     exit(EXIT_FAILURE);
 }
 
@@ -781,17 +768,14 @@ void Parser::declareClass(string className, string parentClass) {
     
     // Verifica se já existe uma classe com esse nome.
     if (existing != nullptr && existing->kind == CLASS_NAME) {
-        cerr << "erro: linha " << scanner->getLine() << ": redefinicao de '" << className << "'" << endl;
-        cerr << "nota: declaracao anterior na linha " << existing->line << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Classe '" + className + "' ja foi declarada na linha " + to_string(existing->line));
     }
     
     // Se há classe pai, verifica se ela existe.
     if (!parentClass.empty()) {
         STEntry* parent = symbolTable->get(parentClass);
         if (parent == nullptr || parent->kind != CLASS_NAME) {
-            cerr << "erro: linha " << scanner->getLine() << ": '" << parentClass << "' nao foi declarado" << endl;
-            exit(EXIT_FAILURE);
+            semanticError("Classe pai '" + parentClass + "' nao foi declarada");
         }
     }
     
@@ -801,15 +785,14 @@ void Parser::declareClass(string className, string parentClass) {
     classEntry->parentClass = parentClass;
     
     if (!symbolTable->add(classEntry)) {
-        cerr << "erro interno: linha " << scanner->getLine() << ": falha ao adicionar '" << className << "' na tabela de simbolos" << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Erro ao adicionar classe '" + className + "' na tabela de simbolos");
     }
     
-    cout << "[SEMANTICO] Classe '" << className << "' declarada";
-    if (!parentClass.empty()) {
-        cout << " (herda de '" << parentClass << "')";
-    }
-    cout << " na linha " << scanner->getLine() << endl;
+    // cout << "[SEMANTICO] Classe '" << className << "' declarada";
+    // if (!parentClass.empty()) {
+    //    cout << " (herda de '" << parentClass << "')";
+    // }
+    // cout << " na linha " << scanner->getLine() << endl;
 }
 
 // Declara uma variável na tabela de símbolos do escopo atual.
@@ -818,9 +801,7 @@ void Parser::declareVariable(string varName, string varType, bool isArray) {
     // Verifica se já existe no escopo ATUAL (não nos pais).
     if (currentScope->symbols.find(varName) != currentScope->symbols.end()) {
         STEntry* existing = currentScope->symbols[varName];
-        cerr << "erro: linha " << scanner->getLine() << ": redeclaracao de '" << varName << "'" << endl;
-        cerr << "nota: declaracao anterior na linha " << existing->line << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Variavel '" + varName + "' ja foi declarada na linha " + to_string(existing->line));
     }
     
     // Se o tipo é uma classe (ID), verifica se a classe existe.
@@ -833,22 +814,19 @@ void Parser::declareVariable(string varName, string varType, bool isArray) {
     STEntry* varEntry = new STEntry(varToken, VARIABLE, varType, isArray, scanner->getLine());
     
     if (!currentScope->add(varEntry)) {
-        cerr << "erro interno: linha " << scanner->getLine() << ": falha ao adicionar '" << varName << "' na tabela de simbolos" << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Erro ao adicionar variavel '" + varName + "' na tabela de simbolos");
     }
     
-    cout << "[SEMANTICO] Variavel '" << varName << "' do tipo '" << varType;
-    if (isArray) cout << "[]";
-    cout << "' declarada na linha " << scanner->getLine() << endl;
+    // cout << "[SEMANTICO] Variavel '" << varName << "' do tipo '" << varType;
+    // if (isArray) cout << "[]";
+    // cout << "' declarada na linha " << scanner->getLine() << endl;
 }
 
 // Declara um método na tabela de símbolos.
 void Parser::declareMethod(string methodName, string returnType, bool isArray) {
     if (currentScope->symbols.find(methodName) != currentScope->symbols.end()) {
         STEntry* existing = currentScope->symbols[methodName];
-        cerr << "erro: linha " << scanner->getLine() << ": redefinicao de '" << methodName << "'" << endl;
-        cerr << "nota: declaracao anterior na linha " << existing->line << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Metodo '" + methodName + "' ja foi declarado na linha " + to_string(existing->line));
     }
     
     // Se o tipo de retorno é uma classe, verifica se existe.
@@ -861,43 +839,39 @@ void Parser::declareMethod(string methodName, string returnType, bool isArray) {
     STEntry* methodEntry = new STEntry(methodToken, METHOD, returnType, isArray, scanner->getLine());
     
     if (!currentScope->add(methodEntry)) {
-        cerr << "erro interno: linha " << scanner->getLine() << ": falha ao adicionar '" << methodName << "' na tabela de simbolos" << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Erro ao adicionar metodo '" + methodName + "' na tabela de simbolos");
     }
     
-    cout << "[SEMANTICO] Metodo '" << methodName << "' com retorno '" << returnType;
-    if (isArray) cout << "[]";
-    cout << "' declarado na linha " << scanner->getLine() << endl;
+    // cout << "[SEMANTICO] Metodo '" << methodName << "' com retorno '" << returnType;
+    // if (isArray) cout << "[]";
+    // cout << "' declarado na linha " << scanner->getLine() << endl;
 }
 
 void Parser::checkVariableDeclared(string varName) {
     STEntry* entry = currentScope->get(varName);
     
     if (entry == nullptr) {
-        cerr << "erro: linha " << scanner->getLine() << ": '" << varName << "' nao foi declarado neste escopo" << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Variavel '" + varName + "' nao foi declarada");
     }
     
     if (entry->reserved) {
-        cerr << "erro: linha " << scanner->getLine() << ": '" << varName << "' e uma palavra reservada" << endl;
-        exit(EXIT_FAILURE);
+        semanticError("'" + varName + "' e uma palavra reservada e nao pode ser usada como variavel");
     }
     
-    cout << "[SEMANTICO] Variavel '" << varName << "' usada na linha " << scanner->getLine() 
-         << " (declarada na linha " << entry->line << ")" << endl;
+    // cout << "[SEMANTICO] Variavel '" << varName << "' usada na linha " << scanner->getLine() 
+    //     << " (declarada na linha " << entry->line << ")" << endl;
 }
 
 void Parser::checkClassDeclared(string className) {
     STEntry* entry = symbolTable->get(className);
     
     if (entry == nullptr || entry->kind != CLASS_NAME) {
-        cerr << "erro: linha " << scanner->getLine() << ": '" << className << "' nao foi declarado como uma classe" << endl;
-        exit(EXIT_FAILURE);
+        semanticError("Classe '" + className + "' nao foi declarada");
     }
 }
 
 // Lança um erro semântico com mensagem detalhada.
 void Parser::semanticError(string message) {
-    cerr << "erro: linha " << scanner->getLine() << ": " << message << endl;
+    cout << "\n[ERRO SEMANTICO] Linha " << scanner->getLine() << ": " << message << endl;
     exit(EXIT_FAILURE);
 }

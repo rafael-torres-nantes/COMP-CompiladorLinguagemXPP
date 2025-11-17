@@ -149,7 +149,6 @@ Token* Scanner::nextToken()
             token = new Token(INTEGER_LITERAL, lexeme);
             return token;
 
-
         case 5: // <
             if (input[pos] == '=')
             {
@@ -335,6 +334,6 @@ Token* Scanner::nextToken()
 // Função de erro léxico
 void Scanner::lexicalError()
 {
-    cerr << "erro lexico: linha " << line << ": caractere invalido '" << input[pos] << "'" << endl;
+    cout << "\n[ERRO LEXICO] Linha " << line << ": caractere invalido '" << input[pos] << "'" << endl;
     exit(1); // Finaliza o programa
 }
